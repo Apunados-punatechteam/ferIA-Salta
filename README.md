@@ -16,31 +16,20 @@ Incluye perfil de emprendedor con imágenes, inscripción a ferias, IA con Gemin
 ## Arquitectura
 
 ```txt
-feria-v2/
+feria-arkiv/
 ├── backend/
-│   ├── api/
-│   │   ├── chat.js              # Gemini
-│   │   ├── users.js             # registro/login local + Arkiv opcional
-│   │   ├── profiles.js          # perfil + carga de imágenes
-│   │   ├── dbFerias.js          # ferias en PostgreSQL/Prisma
-│   │   ├── inscripciones.js     # mis ferias + Arkiv + Stellar memo
-│   │   ├── payments.js          # configuración/confirmación Stellar
-│   │   ├── arkiv.js             # endpoints Arkiv directos heredados
-│   │   └── ferias.js            # ferias estáticas fallback
-│   ├── lib/
-│   │   ├── prisma.js
-│   │   ├── arkivClient.js
-│   │   ├── stellar.js
-│   │   └── prompt.js
-│   ├── prisma/
-│   │   ├── schema.prisma
-│   │   ├── seed.js
-│   │   └── migrations/202605280001_init/migration.sql
-│   └── uploads/
-├── frontend/
-│   └── src/pages/
-│       ├── DashEmprendedor.jsx
-│       └── ProfileEmprendedor.jsx
+│   ├── prisma/              # Esquema y migraciones de DB
+│   ├── src/
+│   │   ├── routes/          # Endpoints Fastify
+│   │   ├── services/        # Lógica de negocio (Arkiv, Stellar, Gemini)
+│   │   └── server.ts        # Punto de entrada del backend
+│   └── uploads/             # Almacenamiento de imágenes
+├── src/                     # Frontend (Vite + React + TS)
+│   ├── components/
+│   ├── pages/
+│   └── services/
+├── nginx.conf               # Configuración de Nginx para producción
+├── Dockerfile.frontend
 └── docker-compose.yml
 ```
 
@@ -115,12 +104,18 @@ npm run dev
 ### 3. Frontend
 
 ```bash
-cd frontend
+# En el directorio raíz
 npm install
 npm run dev
 ```
 
 Frontend local: `http://localhost:5173`.
+
+### 4. Ambos servicios (local)
+
+```bash
+npm run dev:all
+```
 
 ## Usuarios demo del seeder
 
