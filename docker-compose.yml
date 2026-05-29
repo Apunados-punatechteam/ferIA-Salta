@@ -1,0 +1,37 @@
+﻿services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: feria-arkiv-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4100
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN}
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      ARKIV_PRIVATE_KEY: ${ARKIV_PRIVATE_KEY}
+      ARKIV_PROJECT_ATTRIBUTE_KEY: ${ARKIV_PROJECT_ATTRIBUTE_KEY}
+      ARKIV_PROJECT_ATTRIBUTE_VALUE: ${ARKIV_PROJECT_ATTRIBUTE_VALUE}
+      STELLAR_NETWORK: ${STELLAR_NETWORK}
+      STELLAR_HORIZON_URL: ${STELLAR_HORIZON_URL}
+      STELLAR_RECEIVER_PUBLIC_KEY: ${STELLAR_RECEIVER_PUBLIC_KEY}
+      STELLAR_FAIR_REGISTRATION_AMOUNT_XLM: ${STELLAR_FAIR_REGISTRATION_AMOUNT_XLM}
+      ARKIV_ENTITIES_CACHE_TTL_MS: ${ARKIV_ENTITIES_CACHE_TTL_MS:-20000}
+      ARKIV_ENTITIES_STALE_TTL_MS: ${ARKIV_ENTITIES_STALE_TTL_MS:-900000}
+    expose:
+      - "4100"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        VITE_API_BASE_URL: /api
+    container_name: feria-arkiv-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"

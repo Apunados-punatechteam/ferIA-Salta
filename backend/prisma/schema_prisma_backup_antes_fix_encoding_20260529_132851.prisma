@@ -1,0 +1,61 @@
+﻿generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum FeriaUserRole {
+  ENTREPRENEUR
+  FAIR_ORGANIZER
+  MUNICIPALITY
+}
+
+model FeriaUser {
+  id           String        @id @default(uuid())
+  username     String        @unique
+  passwordHash String        @map("password_hash")
+  fullName     String        @map("full_name")
+  document     String
+  role         FeriaUserRole
+  isActive     Boolean       @default(true) @map("is_active")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  @@map("feria_users")
+}
+enum StellarPaymentStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  EXPIRED
+}
+model StellarPayment {
+  id                String               @id @default(uuid())
+  registrationKey   String?              @map("registration_key")
+  fairKey           String?              @map("fair_key")
+  userId            String               @map("user_id")
+  userUsername      String               @map("user_username")
+  userDocument      String               @map("user_document")
+  amountXlm         Decimal              @map("amount_xlm") @db.Decimal(18, 7)
+  assetCode         String               @default("XLM") @map("asset_code")
+  network           String               @default("TESTNET")
+  receiverPublicKey String               @map("receiver_public_key")
+  sourcePublicKey   String?              @map("source_public_key")
+  memo              String               @unique
+  txHash            String?              @unique @map("tx_hash")
+  status            StellarPaymentStatus @default(PENDING)
+  rawTransaction    Json?                @map("raw_transaction")
+  rawOperation      Json?                @map("raw_operation")
+  createdAt         DateTime             @default(now()) @map("created_at")
+  confirmedAt       DateTime?            @map("confirmed_at")
+  updatedAt         DateTime             @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([registrationKey])
+  @@index([fairKey])
+  @@index([status])
+  @@map("feria_stellar_payments")
+}
