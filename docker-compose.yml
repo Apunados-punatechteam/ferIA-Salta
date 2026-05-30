@@ -3,10 +3,9 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: feria-arkiv-backend
     restart: unless-stopped
     networks:
-      - feria-network
+      - ferianet
     environment:
       NODE_ENV: production
       PORT: 4100
@@ -19,6 +18,7 @@ services:
       STELLAR_NETWORK: ${STELLAR_NETWORK}
       STELLAR_HORIZON_URL: ${STELLAR_HORIZON_URL}
       STELLAR_RECEIVER_PUBLIC_KEY: ${STELLAR_RECEIVER_PUBLIC_KEY}
+      STELLAR_MUNICIPALITY_RECEIVER_PUBLIC_KEY: ${STELLAR_MUNICIPALITY_RECEIVER_PUBLIC_KEY}
       STELLAR_FAIR_REGISTRATION_AMOUNT_XLM: ${STELLAR_FAIR_REGISTRATION_AMOUNT_XLM}
     expose:
       - "4100"
@@ -29,15 +29,14 @@ services:
       dockerfile: Dockerfile.frontend
       args:
         VITE_API_BASE_URL: /api
-    container_name: feria-arkiv-frontend
     restart: unless-stopped
     depends_on:
       - backend
     networks:
-      - feria-network
+      - ferianet
     expose:
       - "80"
 
 networks:
-  feria-network:
+  ferianet:
     driver: bridge
