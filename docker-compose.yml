@@ -1,11 +1,9 @@
 services:
-  backend:
+  app:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
     restart: unless-stopped
-    networks:
-      - ferianet
     expose:
       - "4100"
     environment:
@@ -22,22 +20,3 @@ services:
       STELLAR_RECEIVER_PUBLIC_KEY: ${STELLAR_RECEIVER_PUBLIC_KEY}
       STELLAR_MUNICIPALITY_RECEIVER_PUBLIC_KEY: ${STELLAR_MUNICIPALITY_RECEIVER_PUBLIC_KEY}
       STELLAR_FAIR_REGISTRATION_AMOUNT_XLM: ${STELLAR_FAIR_REGISTRATION_AMOUNT_XLM}
-
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-      args:
-        VITE_API_BASE_URL: /api
-        NGINX_VERSION: "4"
-    restart: unless-stopped
-    depends_on:
-      - backend
-    expose:
-      - "80"
-    networks:
-      - ferianet
-
-networks:
-  ferianet:
-    driver: bridge
