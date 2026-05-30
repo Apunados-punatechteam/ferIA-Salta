@@ -1,10 +1,12 @@
-﻿services:
+services:
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: feria-arkiv-backend
     restart: unless-stopped
+    networks:
+      - feria-network
     environment:
       NODE_ENV: production
       PORT: 4100
@@ -18,8 +20,6 @@
       STELLAR_HORIZON_URL: ${STELLAR_HORIZON_URL}
       STELLAR_RECEIVER_PUBLIC_KEY: ${STELLAR_RECEIVER_PUBLIC_KEY}
       STELLAR_FAIR_REGISTRATION_AMOUNT_XLM: ${STELLAR_FAIR_REGISTRATION_AMOUNT_XLM}
-      ARKIV_ENTITIES_CACHE_TTL_MS: ${ARKIV_ENTITIES_CACHE_TTL_MS:-20000}
-      ARKIV_ENTITIES_STALE_TTL_MS: ${ARKIV_ENTITIES_STALE_TTL_MS:-900000}
     expose:
       - "4100"
 
@@ -33,5 +33,11 @@
     restart: unless-stopped
     depends_on:
       - backend
+    networks:
+      - feria-network
     expose:
       - "80"
+
+networks:
+  feria-network:
+    driver: bridge
