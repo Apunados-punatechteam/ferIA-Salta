@@ -4,8 +4,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     restart: unless-stopped
-    networks:
-      - ferianet
+    ports:
+      - "4100:4100"
     environment:
       NODE_ENV: production
       PORT: 4100
@@ -26,13 +26,7 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
       args:
-        VITE_API_BASE_URL: /api
+        VITE_API_BASE_URL: http://31.97.28.11:4100/api
     restart: unless-stopped
     depends_on:
       - backend
-    networks:
-      - ferianet
-
-networks:
-  ferianet:
-    driver: bridge
