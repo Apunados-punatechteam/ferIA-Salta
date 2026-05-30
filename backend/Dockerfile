@@ -1,4 +1,4 @@
-﻿FROM node:22-alpine AS deps
+FROM node:22-alpine AS deps
 
 WORKDIR /app
 
@@ -33,4 +33,4 @@ COPY --from=build /app/dist ./dist
 
 EXPOSE 4100
 
-CMD ["sh", "-c", "npx prisma db push --schema ./prisma/schema.prisma --accept-data-loss && node dist/server.js"]
+CMD ["sh", "-c", "sleep 5 && npx prisma db push --schema ./prisma/schema.prisma --accept-data-loss && node dist/server.js"]
