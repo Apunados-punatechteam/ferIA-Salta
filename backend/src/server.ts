@@ -1,4 +1,4 @@
-﻿import Fastify from "fastify";
+import Fastify from "fastify";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
 import multipart from "@fastify/multipart";
@@ -6,7 +6,6 @@ import fastifyStatic from "@fastify/static";
 import path from "node:path";
 import { mkdir } from "node:fs/promises";
 import type { FastifyReply, FastifyRequest } from "fastify";
-
 import { authRoutes } from "./routes/auth.routes.js";
 import { arkivRoutes } from "./routes/arkiv.routes.js";
 import { fairsRoutes } from "./routes/fairs.routes.js";
@@ -54,9 +53,17 @@ await app.register(multipart, {
   },
 });
 
+// Servir uploads
 await app.register(fastifyStatic, {
   root: path.join(process.cwd(), "uploads"),
   prefix: "/uploads/",
+});
+
+// Servir frontend estático
+await app.register(fastifyStatic, {
+  root: path.join(process.cwd(), "public"),
+  prefix: "/",
+  decorateReply: false,
 });
 
 app.get("/health", async () => {
@@ -71,27 +78,4 @@ app.register(registerRoutes);
 await app.register(arkivRoutes, { prefix: "/api" });
 await app.register(fairsRoutes, { prefix: "/api" });
 await app.register(fairRegistrationsRoutes, { prefix: "/api" });
-await app.register(stellarPaymentsRoutes, { prefix: "/api" });
-await app.register(publicFairsRoutes, { prefix: "/api" });
-
-const port = Number(process.env.PORT ?? 4100);
-const host = process.env.HOST ?? "0.0.0.0";
-await app.register(fastifyStatic, {
-  root: path.join(process.cwd(), "public"),
-  prefix: "/",
-  decorateReply: false,
-});
-
-app.setNotFoundHandler((_request, reply) => {
-  reply.sendFile("index.html");
-});
-try {
-  await app.listen({
-    port,
-    host,
-  });
-} catch (error) {
-  app.log.error(error);
-  process.exit(1);
-}
-
+aw
