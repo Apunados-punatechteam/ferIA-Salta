@@ -78,4 +78,23 @@ app.register(registerRoutes);
 await app.register(arkivRoutes, { prefix: "/api" });
 await app.register(fairsRoutes, { prefix: "/api" });
 await app.register(fairRegistrationsRoutes, { prefix: "/api" });
-aw
+await app.register(stellarPaymentsRoutes, { prefix: "/api" });
+await app.register(publicFairsRoutes, { prefix: "/api" });
+
+// SPA fallback - todas las rutas no encontradas sirven index.html
+app.setNotFoundHandler((_request, reply) => {
+  reply.sendFile("index.html");
+});
+
+const port = Number(process.env.PORT ?? 4100);
+const host = process.env.HOST ?? "0.0.0.0";
+
+try {
+  await app.listen({
+    port,
+    host,
+  });
+} catch (error) {
+  app.log.error(error);
+  process.exit(1);
+}
