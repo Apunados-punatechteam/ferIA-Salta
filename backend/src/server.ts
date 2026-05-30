@@ -76,7 +76,15 @@ await app.register(publicFairsRoutes, { prefix: "/api" });
 
 const port = Number(process.env.PORT ?? 4100);
 const host = process.env.HOST ?? "0.0.0.0";
+await app.register(fastifyStatic, {
+  root: path.join(process.cwd(), "public"),
+  prefix: "/",
+  decorateReply: false,
+});
 
+app.setNotFoundHandler((_request, reply) => {
+  reply.sendFile("index.html");
+});
 try {
   await app.listen({
     port,
