@@ -8,9 +8,8 @@ import {
   createFairCertificate,
   createFairRegistration,
   createFairRegistrationCancellation,
-  listProjectEntities,
 } from "../arkivService.js";
-import { invalidateProjectEntitiesCache } from "../arkivCache.js";
+import { getProjectEntitiesCached, invalidateProjectEntitiesCache } from "../arkivCache.js";
 
 type ArkivEntity = Record<string, unknown>;
 
@@ -284,7 +283,16 @@ export async function fairRegistrationsRoutes(app: FastifyInstance) {
       }
 
       return withFairLock(fairKey, async () => {
-        const entities = (await listProjectEntities()) as ArkivEntity[];
+        const cachedEntities = await getProjectEntitiesCached();
+        const entities = cachedEntities.entities as ArkivEntity[];
+
+        if (!Array.isArray(entities) || entities.length === 0) {
+          return reply.code(503).send({
+            ok: false,
+            error: "No se pudieron cargar las ferias aprobadas en este momento. Intentá nuevamente en unos segundos.",
+          });
+        }
+
         const fair = findApprovedFair(entities, fairKey);
 
         if (!fair) {
@@ -383,5 +391,6 @@ export async function fairRegistrationsRoutes(app: FastifyInstance) {
     }
   );
 }
+
 
 

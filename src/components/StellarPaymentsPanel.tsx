@@ -1,4 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import {
   backendCreateStellarPaymentIntent,
   backendListStellarPayments,
@@ -37,6 +38,77 @@ function getUserDocumentFromToken(token: string | null): string {
   }
 }
 
+function getRegistrationFairKey(entity: LocalArkivEntity<unknown>) {
+  const payload = getPayload(entity);
+  return String(payload.fairKey ?? payload.fairId ?? "");
+}
+
+function getRegistrationLabel(entity: LocalArkivEntity<unknown>) {
+  const payload = getPayload(entity);
+
+  const fairName = String(payload.fairName ?? "Feria");
+  const businessName = String(
+    payload.businessName ??
+      payload.ventureName ??
+      payload.standName ??
+      "Emprendimiento"
+  );
+
+  return `${fairName} - ${businessName}`;
+}
+
+function getRegistrationPayment(
+  payments: StellarPayment[],
+  registrationKey: string
+) {
+  const related = payments.filter(
+    (payment) => payment.registrationKey === registrationKey
+  );
+
+  const confirmed = related.find((payment) => payment.status === "CONFIRMED");
+  if (confirmed) {
+    return {
+      status: "CONFIRMED" as const,
+      payment: confirmed,
+      related,
+    };
+  }
+
+  const pending = related.find((payment) => payment.status === "PENDING");
+  if (pending) {
+    return {
+      status: "PENDING" as const,
+      payment: pending,
+      related,
+    };
+  }
+
+  return {
+    status: "UNPAID" as const,
+    payment: null,
+    related,
+  };
+}
+
+function getPaymentStatusLabel(status: "CONFIRMED" | "PENDING" | "UNPAID") {
+  if (status === "CONFIRMED") return "CONFIRMADO";
+  if (status === "PENDING") return "PENDIENTE";
+  return "SIN PAGO";
+}
+
+function buildStellarPayUri(payment: StellarPayment) {
+  const params = new URLSearchParams();
+
+  params.set("destination", payment.receiverPublicKey);
+  params.set("amount", payment.amountXlm);
+  params.set("asset_code", "XLM");
+  params.set("memo", payment.memo);
+  params.set("memo_type", "MEMO_TEXT");
+  params.set("network_passphrase", payment.network === "PUBLIC" ? "Public Global Stellar Network ; September 2015" : "Test SDF Network ; September 2015");
+
+  return `web+stellar:pay?${params.toString()}`;
+}
+
 export function StellarPaymentsPanel(props: {
   token: string | null;
   entities: LocalArkivEntity<unknown>[];
@@ -67,6 +139,34 @@ export function StellarPaymentsPanel(props: {
       });
   }, [props.entities, userDocument]);
 
+  const selectedRegistration = useMemo(() => {
+    return (
+      myRegistrations.find(
+        (entity) => entity.entityKey === selectedRegistrationKey
+      ) ?? null
+    );
+  }, [myRegistrations, selectedRegistrationKey]);
+
+  const selectedPaymentState = useMemo(() => {
+    if (!selectedRegistrationKey) {
+      return {
+        status: "UNPAID" as const,
+        payment: null,
+        related: [],
+      };
+    }
+
+    return getRegistrationPayment(payments, selectedRegistrationKey);
+  }, [payments, selectedRegistrationKey]);
+
+  const visiblePayments = useMemo(() => {
+    return payments.filter((payment) => payment.status !== "EXPIRED");
+  }, [payments]);
+
+  const activePaymentUri = useMemo(() => {
+    return activePayment ? buildStellarPayUri(activePayment) : "";
+  }, [activePayment]);
+
   async function loadPayments() {
     if (!props.token) return;
 
@@ -76,41 +176,64 @@ export function StellarPaymentsPanel(props: {
 
     setPayments(data);
 
-    const pending = data.find((payment) => payment.status === "PENDING");
-    if (pending) {
-      setActivePayment(pending);
-      setSelectedRegistrationKey(pending.registrationKey ?? "");
+    if (!selectedRegistrationKey && myRegistrations.length > 0) {
+      setSelectedRegistrationKey(myRegistrations[0].entityKey);
+      return;
+    }
+
+    if (selectedRegistrationKey) {
+      const state = getRegistrationPayment(data, selectedRegistrationKey);
+      setActivePayment(state.payment);
     }
   }
 
   useEffect(() => {
+    if (!selectedRegistrationKey && myRegistrations.length > 0) {
+      setSelectedRegistrationKey(myRegistrations[0].entityKey);
+    }
+  }, [myRegistrations, selectedRegistrationKey]);
+
+  useEffect(() => {
     void loadPayments();
-  }, [props.token]);
+  }, [props.token, myRegistrations.length, selectedRegistrationKey]);
+
+  useEffect(() => {
+    setActivePayment(selectedPaymentState.payment);
+  }, [selectedPaymentState.payment]);
 
   async function handleCreateIntent() {
     if (!props.token) return;
+
+    if (!selectedRegistration) {
+      setMessage("Primero seleccioná una inscripción.");
+      return;
+    }
+
+    if (selectedPaymentState.status === "CONFIRMED") {
+      setMessage("Esta inscripción ya tiene un pago confirmado.");
+      return;
+    }
 
     setIsLoading(true);
     setMessage("");
 
     try {
-      const registration = myRegistrations.find(
-        (entity) => entity.entityKey === selectedRegistrationKey
-      );
-
-      const payload = registration ? getPayload(registration) : {};
-
       const payment = await backendCreateStellarPaymentIntent({
         token: props.token,
-        registrationKey: selectedRegistrationKey || undefined,
-        fairKey: String(payload.fairKey ?? "") || undefined,
+        registrationKey: selectedRegistration.entityKey,
+        fairKey: getRegistrationFairKey(selectedRegistration) || undefined,
       });
 
       setActivePayment(payment);
       await loadPayments();
-      setMessage(
-        "Intención de pago creada. Realizá el pago en tu wallet Stellar y luego pegá el hash."
-      );
+
+      if (payment.status === "CONFIRMED") {
+        setMessage("Esta inscripción ya tenía un pago confirmado.");
+      } else {
+        setMessage(
+          "Escaneá el QR con una wallet Stellar compatible o usá los datos manuales. Luego pegá el hash para verificar."
+        );
+      }
     } catch (error) {
       setMessage(
         error instanceof Error
@@ -138,6 +261,7 @@ export function StellarPaymentsPanel(props: {
       setActivePayment(verified);
       await loadPayments();
       await props.onPaymentConfirmed?.();
+      setTxHash("");
       setMessage("Pago confirmado correctamente en Stellar.");
     } catch (error) {
       setMessage(
@@ -148,6 +272,13 @@ export function StellarPaymentsPanel(props: {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  async function copyPaymentUri() {
+    if (!activePaymentUri) return;
+
+    await navigator.clipboard.writeText(activePaymentUri);
+    setMessage("Link de pago Stellar copiado.");
   }
 
   return (
@@ -161,37 +292,77 @@ export function StellarPaymentsPanel(props: {
       </div>
 
       <p className="empty-state">
-        Generá una intención de pago, enviá XLM desde tu wallet Stellar usando el memo indicado
-        y luego pegá el hash de la transacción para confirmar.
+        Seleccioná una inscripción, generá la intención de pago y escaneá el QR con una wallet
+        Stellar compatible. El QR incluye destino, monto y memo obligatorio.
       </p>
 
-      <div className="form-grid">
-        <label>
-          Inscripción
-          <select
-            value={selectedRegistrationKey}
-            onChange={(event) => setSelectedRegistrationKey(event.target.value)}
-          >
-            <option value="">Pago general / sin inscripción asociada</option>
-            {myRegistrations.map((entity) => {
-              const payload = getPayload(entity);
+      {myRegistrations.length === 0 ? (
+        <div className="entity-card">
+          Todavía no tenés inscripciones para pagar.
+        </div>
+      ) : (
+        <>
+          <div className="form-grid">
+            <label>
+              Inscripción
+              <select
+                value={selectedRegistrationKey}
+                onChange={(event) => {
+                  setSelectedRegistrationKey(event.target.value);
+                  setTxHash("");
+                  setMessage("");
+                }}
+              >
+                {myRegistrations.map((entity) => {
+                  const state = getRegistrationPayment(payments, entity.entityKey);
 
-              return (
-                <option key={entity.entityKey} value={entity.entityKey}>
-                  {String(payload.fairName ?? "Feria")} -{" "}
-                  {String(payload.businessName ?? "Emprendimiento")}
-                </option>
-              );
-            })}
-          </select>
-        </label>
-      </div>
+                  return (
+                    <option key={entity.entityKey} value={entity.entityKey}>
+                      {getRegistrationLabel(entity)} · {getPaymentStatusLabel(state.status)}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+          </div>
 
-      <div className="actions">
-        <button type="button" onClick={handleCreateIntent} disabled={isLoading || !props.token}>
-          {isLoading ? "Procesando..." : "Generar pago Stellar"}
-        </button>
-      </div>
+          <div className="entity-card">
+            <div className="entity-card-header">
+              <strong>Estado de pago de la inscripción</strong>
+              <span className="status-pill">
+                {getPaymentStatusLabel(selectedPaymentState.status)}
+              </span>
+            </div>
+
+            {selectedRegistration ? (
+              <small className="mono">
+                Inscripción: {selectedRegistration.entityKey}
+              </small>
+            ) : null}
+          </div>
+
+          <div className="actions">
+            <button
+              type="button"
+              onClick={handleCreateIntent}
+              disabled={
+                isLoading ||
+                !props.token ||
+                !selectedRegistration ||
+                selectedPaymentState.status === "CONFIRMED"
+              }
+            >
+              {selectedPaymentState.status === "CONFIRMED"
+                ? "Pago confirmado"
+                : isLoading
+                  ? "Procesando..."
+                  : selectedPaymentState.status === "PENDING"
+                    ? "Ver QR de pago"
+                    : "Generar pago Stellar"}
+            </button>
+          </div>
+        </>
+      )}
 
       {activePayment ? (
         <div className="entity-card">
@@ -200,28 +371,57 @@ export function StellarPaymentsPanel(props: {
             <span className="status-pill">{activePayment.status}</span>
           </div>
 
-          <dl className="entity-details">
-            <dt>Red</dt>
-            <dd>{activePayment.network}</dd>
+          <div className="stellar-payment-layout">
+            <div className="stellar-qr-card">
+              <QRCodeSVG value={activePaymentUri} size={220} includeMargin />
+              <strong>Escanear para pagar</strong>
+              <small>
+                Compatible con wallets que soporten SEP-0007 / web+stellar.
+              </small>
+              <button type="button" className="ghost" onClick={copyPaymentUri}>
+                Copiar link de pago
+              </button>
+            </div>
 
-            <dt>Monto</dt>
-            <dd>
-              {activePayment.amountXlm} {activePayment.assetCode}
-            </dd>
+            <dl className="entity-details">
+              <dt>Concepto</dt>
+              <dd>{activePayment.paymentConcept ?? "ENTREPRENEUR_REGISTRATION_FEE"}</dd>
 
-            <dt>Cuenta destino</dt>
-            <dd className="mono">{activePayment.receiverPublicKey}</dd>
+              <dt>Cobra</dt>
+              <dd>
+                {activePayment.payeeRole ?? "MUNICIPALITY"}
+                {activePayment.payeeName ? ` · ${activePayment.payeeName}` : ""}
+              </dd>
 
-            <dt>Memo obligatorio</dt>
-            <dd className="mono">{activePayment.memo}</dd>
+              <dt>Red</dt>
+              <dd>{activePayment.network}</dd>
 
-            {activePayment.txHash ? (
-              <>
-                <dt>Tx Hash</dt>
-                <dd className="mono">{activePayment.txHash}</dd>
-              </>
-            ) : null}
-          </dl>
+              <dt>Monto</dt>
+              <dd>
+                {activePayment.amountXlm} {activePayment.assetCode}
+              </dd>
+
+              <dt>Cuenta destino</dt>
+              <dd className="mono">{activePayment.receiverPublicKey}</dd>
+
+              <dt>Memo obligatorio</dt>
+              <dd className="mono">{activePayment.memo}</dd>
+
+              {activePayment.txHash ? (
+                <>
+                  <dt>Tx Hash</dt>
+                  <dd className="mono">{activePayment.txHash}</dd>
+                </>
+              ) : null}
+
+              {activePayment.confirmedAt ? (
+                <>
+                  <dt>Confirmado</dt>
+                  <dd>{new Date(activePayment.confirmedAt).toLocaleString()}</dd>
+                </>
+              ) : null}
+            </dl>
+          </div>
 
           {activePayment.status !== "CONFIRMED" ? (
             <>
@@ -248,14 +448,17 @@ export function StellarPaymentsPanel(props: {
         </div>
       ) : null}
 
-      {payments.length > 0 ? (
+      {visiblePayments.length > 0 ? (
         <div className="final-list">
-          {payments.map((payment) => (
+          {visiblePayments.map((payment) => (
             <div className="entity-card" key={payment.id}>
               <div className="entity-card-header">
                 <strong>{payment.amountXlm} XLM</strong>
                 <span className="status-pill">{payment.status}</span>
               </div>
+              <small className="mono">
+                {payment.registrationKey ? `Inscripción: ${payment.registrationKey}` : "Sin inscripción asociada"}
+              </small>
               <small className="mono">{payment.memo}</small>
             </div>
           ))}
@@ -266,3 +469,4 @@ export function StellarPaymentsPanel(props: {
     </section>
   );
 }
+

@@ -172,6 +172,11 @@ export async function createFairEvent(params: {
   availableSlots: number;
   latitude: number;
   longitude: number;
+  createdByRole: "FAIR_ORGANIZER" | "MUNICIPALITY";
+  registrationFeeXlm?: string;
+  paymentReceiverPublicKey?: string;
+  municipalityPublicationFeeXlm?: string;
+  municipalityReceiverPublicKey?: string;
   createdByName: string;
   createdByDocument: string;
 }) {
@@ -189,9 +194,13 @@ export async function createFairEvent(params: {
     latitude: params.latitude,
     longitude: params.longitude,
     status: "pending",
-    createdByRole: "fair_organizer",
+    createdByRole: params.createdByRole,
     createdByName: params.createdByName,
     createdByDocument: params.createdByDocument,
+    registrationFeeXlm: params.registrationFeeXlm,
+    paymentReceiverPublicKey: params.paymentReceiverPublicKey,
+    municipalityPublicationFeeXlm: params.municipalityPublicationFeeXlm,
+    municipalityReceiverPublicKey: params.municipalityReceiverPublicKey,
     createdAt,
   };
 
@@ -201,10 +210,14 @@ export async function createFairEvent(params: {
     attributes: [
       { key: "entityType", value: ENTITY_TYPES.FAIR_EVENT },
       { key: "status", value: "pending" },
-      { key: "createdByRole", value: "fair_organizer" },
+      { key: "createdByRole", value: params.createdByRole },
       { key: "createdByDocument", value: params.createdByDocument },
       { key: "category", value: params.category },
       { key: "city", value: params.city },
+      ...(params.registrationFeeXlm ? [{ key: "registrationFeeXlm", value: params.registrationFeeXlm }] : []),
+      ...(params.paymentReceiverPublicKey ? [{ key: "paymentReceiverPublicKey", value: params.paymentReceiverPublicKey }] : []),
+      ...(params.municipalityPublicationFeeXlm ? [{ key: "municipalityPublicationFeeXlm", value: params.municipalityPublicationFeeXlm }] : []),
+      ...(params.municipalityReceiverPublicKey ? [{ key: "municipalityReceiverPublicKey", value: params.municipalityReceiverPublicKey }] : []),
       { key: "createdAt", value: createdAt },
     ],
   });
