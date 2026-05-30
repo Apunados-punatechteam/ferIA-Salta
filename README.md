@@ -64,7 +64,7 @@ docker compose up --build
 Servicios:
 
 Frontend: http://localhost:8080
-Backend: http://localhost:3000
+Backend: http://localhost:4100
 PostgreSQL: localhost:5432
 El contenedor backend ejecuta automáticamente:
 
