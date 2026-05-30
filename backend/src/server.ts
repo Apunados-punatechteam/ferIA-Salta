@@ -13,6 +13,7 @@ import { fairsRoutes } from "./routes/fairs.routes.js";
 import { fairRegistrationsRoutes } from "./routes/fairRegistrations.routes.js";
 import { registerRoutes } from "./routes/register.routes.js";
 import { stellarPaymentsRoutes } from "./routes/stellarPayments.routes.js";
+import { publicFairsRoutes } from "./routes/publicFairs.routes.js";
 
 const app = Fastify({
   logger: true,
@@ -71,6 +72,7 @@ await app.register(arkivRoutes, { prefix: "/api" });
 await app.register(fairsRoutes, { prefix: "/api" });
 await app.register(fairRegistrationsRoutes, { prefix: "/api" });
 await app.register(stellarPaymentsRoutes, { prefix: "/api" });
+await app.register(publicFairsRoutes, { prefix: "/api" });
 
 const port = Number(process.env.PORT ?? 4100);
 const host = process.env.HOST ?? "0.0.0.0";
@@ -84,3 +86,4 @@ try {
   app.log.error(error);
   process.exit(1);
 }
+

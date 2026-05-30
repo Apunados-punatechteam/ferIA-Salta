@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react";
+﻿import { type FormEvent, useState } from "react";
 import { backendCreateFair } from "../services/backendApi";
 import { MapPointPicker } from "./MapPointPicker";
 
@@ -13,6 +13,10 @@ type OrganizerFairForm = {
   availableSlots: number;
   latitude: number;
   longitude: number;
+  registrationFeeXlm: string;
+  paymentReceiverPublicKey: string;
+  municipalityPublicationFeeXlm: string;
+  municipalityReceiverPublicKey: string;
 };
 
 const initialForm: OrganizerFairForm = {
@@ -26,11 +30,24 @@ const initialForm: OrganizerFairForm = {
   availableSlots: 25,
   latitude: -24.7883,
   longitude: -65.4106,
+  registrationFeeXlm: "10",
+  paymentReceiverPublicKey: "",
+  municipalityPublicationFeeXlm: "25",
+  municipalityReceiverPublicKey: "GBQTHR27MTSBFPGFQYQ27WRV3GE5RDKEMO23DKO6JYMOECQNRSF6GCF2",
 };
 
 function formatCoordinate(value: number): string {
   if (!Number.isFinite(value)) return "-";
   return value.toFixed(6);
+}
+
+function isOptionalValidStellarPublicKey(value: string) {
+  if (!value.trim()) return true;
+  return /^G[A-Z2-7]{55}$/.test(value.trim());
+}
+
+function isValidXlmAmount(value: string) {
+  return /^\d+(\.\d{1,7})?$/.test(value.trim().replace(",", "."));
 }
 
 export function FairOrganizerPanel({
@@ -78,13 +95,42 @@ export function FairOrganizerPanel({
       return;
     }
 
+    if (!isValidXlmAmount(form.registrationFeeXlm)) {
+      alert("Ingresá un monto válido de inscripción en XLM.");
+      return;
+    }
+
+    if (!isValidXlmAmount(form.municipalityPublicationFeeXlm)) {
+      alert("Ingresá un monto válido de publicación en XLM.");
+      return;
+    }
+
+    if (!isOptionalValidStellarPublicKey(form.paymentReceiverPublicKey)) {
+      alert("La wallet del feriante debe ser una public key Stellar válida que empieza con G.");
+      return;
+    }
+
+    if (!isOptionalValidStellarPublicKey(form.municipalityReceiverPublicKey)) {
+      alert("La wallet de municipalidad debe ser una public key Stellar válida que empieza con G.");
+      return;
+    }
+
     setIsSubmitting(true);
     setErrorMessage("");
 
     try {
       const created = await backendCreateFair({
         token,
-        fair: form,
+        fair: {
+          ...form,
+          registrationFeeXlm: form.registrationFeeXlm.trim().replace(",", "."),
+          paymentReceiverPublicKey: form.paymentReceiverPublicKey.trim() || undefined,
+          municipalityPublicationFeeXlm: form.municipalityPublicationFeeXlm
+            .trim()
+            .replace(",", "."),
+          municipalityReceiverPublicKey:
+            form.municipalityReceiverPublicKey.trim() || undefined,
+        },
       });
 
       setLastCreated({
@@ -116,9 +162,9 @@ export function FairOrganizerPanel({
         </div>
 
         <p className="empty-state">
-          Cargá los datos de la feria y marcá el punto exacto en el mapa. El
-          backend firma la operación y guarda la entidad fair_event en Arkiv con
-          estado pending.
+          Cargá los datos de la feria, definí el monto de inscripción y la wallet
+          Stellar que cobrará. La municipalidad debe aprobar la feria antes de que
+          quede disponible para emprendedores.
         </p>
 
         {errorMessage && <div className="error-banner">{errorMessage}</div>}
@@ -224,6 +270,62 @@ export function FairOrganizerPanel({
                   availableSlots: Number(event.target.value),
                 }))
               }
+            />
+          </label>
+
+          <label>
+            Monto inscripción emprendedor (XLM)
+            <input
+              value={form.registrationFeeXlm}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  registrationFeeXlm: event.target.value,
+                }))
+              }
+              placeholder="10"
+            />
+          </label>
+
+          <label className="span-2">
+            Wallet Stellar que cobra la inscripción
+            <input
+              value={form.paymentReceiverPublicKey}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  paymentReceiverPublicKey: event.target.value,
+                }))
+              }
+              placeholder="G... wallet del feriante. Si se deja vacío, cobra municipalidad."
+            />
+          </label>
+
+          <label>
+            Monto publicación feria (XLM)
+            <input
+              value={form.municipalityPublicationFeeXlm}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  municipalityPublicationFeeXlm: event.target.value,
+                }))
+              }
+              placeholder="25"
+            />
+          </label>
+
+          <label className="span-2">
+            Wallet Stellar municipalidad
+            <input
+              value={form.municipalityReceiverPublicKey}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  municipalityReceiverPublicKey: event.target.value,
+                }))
+              }
+              placeholder="G... wallet de municipalidad"
             />
           </label>
 

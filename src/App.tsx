@@ -8,6 +8,7 @@ import { MunicipalityRegistrationsPanel } from "./components/MunicipalityRegistr
 import { ProfileScopedDashboard } from "./components/ProfileScopedDashboard";
 import { EntrepreneurRegistrationPanel } from "./components/EntrepreneurRegistrationPanel";
 import { StellarPaymentsPanel } from "./components/StellarPaymentsPanel";
+import { PublicLandingPage } from "./components/PublicLandingPage";
 import {
   backendListArkivEntities,
   backendLogin,
@@ -291,7 +292,9 @@ function LoginScreen({
 
   return (
     <main className="login-shell">
-      <section className="login-card">
+      <PublicLandingPage />
+
+      <section id="login-card" className="login-card">
         <div>
           <p className="eyebrow">PunaTech Hackathon - Arkiv Track</p>
           <h1>FerIA</h1>
@@ -952,4 +955,6 @@ function renderStats() {
 }
 
 export default App;
+
+
 

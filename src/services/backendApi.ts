@@ -1,6 +1,5 @@
-import type {
+﻿import type {
   AuthUser,
-  FairMapEvent,
   LocalArkivEntity,
   UserRole,
 } from "../types/feria";
@@ -100,7 +99,7 @@ async function requestJson<TResponse>(params: {
         ? String((data as { error: unknown }).error)
         : `HTTP error ${response.status}`;
 
-    throw new Error(message);
+    throw new Error(message === "Internal Server Error" ? "No se pudo completar la inscripción en este momento. Intentá nuevamente en unos segundos." : message);
   }
 
   return data as TResponse;
@@ -249,21 +248,26 @@ export async function backendListArkivEntities(
     .sort((a, b) => b.createdAt - a.createdAt);
 }
 
+export type BackendCreateFairPayload = {
+  name: string;
+  description: string;
+  address: string;
+  city: string;
+  category: string;
+  startDate: string;
+  endDate: string;
+  availableSlots: number;
+  latitude: number;
+  longitude: number;
+  registrationFeeXlm?: string;
+  paymentReceiverPublicKey?: string;
+  municipalityPublicationFeeXlm?: string;
+  municipalityReceiverPublicKey?: string;
+};
+
 export async function backendCreateFair(params: {
   token: string;
-  fair: Pick<
-    FairMapEvent,
-    | "name"
-    | "description"
-    | "address"
-    | "city"
-    | "category"
-    | "startDate"
-    | "endDate"
-    | "availableSlots"
-    | "latitude"
-    | "longitude"
-  >;
+  fair: BackendCreateFairPayload;
 }): Promise<BackendFairCreateResponse["fair"]> {
   const data = await requestJson<BackendFairCreateResponse>({
     path: "/fairs",
@@ -338,7 +342,7 @@ export async function backendCreateFairRegistration(params: {
         ? String((data as { error: unknown }).error)
         : `HTTP error ${response.status}`;
 
-    throw new Error(message);
+    throw new Error(message === "Internal Server Error" ? "No se pudo completar la inscripción en este momento. Intentá nuevamente en unos segundos." : message);
   }
 
   return data as BackendFairRegistrationResponse;
@@ -435,6 +439,11 @@ export type StellarPayment = {
   userDocument?: string;
   amountXlm: string;
   assetCode: string;
+  paymentConcept?: string;
+  payerRole?: string | null;
+  payeeRole?: string | null;
+  payeeDocument?: string | null;
+  payeeName?: string | null;
   network: string;
   receiverPublicKey: string;
   sourcePublicKey?: string | null;
@@ -501,3 +510,78 @@ export async function backendListStellarPayments(params: {
 
   return data.payments;
 }
+
+export type PublicFairEntrepreneur = {
+  registrationKey: string;
+  entrepreneurName: string;
+  businessName: string;
+  category: string;
+  phone: string;
+  email: string;
+  status: string;
+};
+
+export type PublicFairSummary = {
+  fairKey: string;
+  fairName: string;
+  description: string;
+  locationName: string;
+  address: string;
+  dateLabel: string;
+  latitude: number | null;
+  longitude: number | null;
+  approved: boolean;
+  availableSlots: number | null;
+  totalSlots: number | null;
+  registeredCount: number;
+  entrepreneurs: PublicFairEntrepreneur[];
+};
+
+export async function backendListApprovedPublicFairs(): Promise<PublicFairSummary[]> {
+  const data = await requestJson<{
+    ok: boolean;
+    fairs: PublicFairSummary[];
+  }>({
+    path: "/public/fairs/approved",
+    method: "GET",
+  });
+
+  return data.fairs;
+}
+
+export type StellarRegistrationPaymentSummary = {
+  registrationKey: string;
+  paymentStatus: "CONFIRMED" | "PENDING" | "UNPAID";
+  confirmedPayment: StellarPayment | null;
+  pendingPayment: StellarPayment | null;
+  payments: StellarPayment[];
+};
+
+export async function backendGetStellarPaymentByRegistration(params: {
+  token: string;
+  registrationKey: string;
+}): Promise<StellarRegistrationPaymentSummary> {
+  const data = await requestJson<{
+    ok: boolean;
+    registrationKey: string;
+    paymentStatus: "CONFIRMED" | "PENDING" | "UNPAID";
+    confirmedPayment: StellarPayment | null;
+    pendingPayment: StellarPayment | null;
+    payments: StellarPayment[];
+  }>({
+    path: `/stellar/payments/registration/${encodeURIComponent(params.registrationKey)}`,
+    method: "GET",
+    token: params.token,
+  });
+
+  return {
+    registrationKey: data.registrationKey,
+    paymentStatus: data.paymentStatus,
+    confirmedPayment: data.confirmedPayment,
+    pendingPayment: data.pendingPayment,
+    payments: data.payments,
+  };
+}
+
+
+

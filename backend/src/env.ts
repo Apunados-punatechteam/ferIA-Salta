@@ -19,8 +19,15 @@ const EnvSchema = z.object({
     .string()
     .url()
     .default("https://horizon-testnet.stellar.org"),
+
+  // Compatibilidad con lo ya implementado.
   STELLAR_RECEIVER_PUBLIC_KEY: z.string().min(10),
   STELLAR_FAIR_REGISTRATION_AMOUNT_XLM: z.string().default("10"),
+
+  // Nuevo modelo de cobro.
+  STELLAR_MUNICIPALITY_RECEIVER_PUBLIC_KEY: z.string().min(10),
+  STELLAR_DEFAULT_ENTREPRENEUR_REGISTRATION_AMOUNT_XLM: z.string().default("10"),
+  STELLAR_DEFAULT_FAIR_PUBLICATION_AMOUNT_XLM: z.string().default("25"),
 });
 
 export const env = EnvSchema.parse(process.env);
