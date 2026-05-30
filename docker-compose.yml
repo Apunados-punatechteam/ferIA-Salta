@@ -22,11 +22,11 @@ services:
       STELLAR_FAIR_REGISTRATION_AMOUNT_XLM: ${STELLAR_FAIR_REGISTRATION_AMOUNT_XLM}
 
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-      args:
-        VITE_API_BASE_URL: http://31.97.28.11:4100/api
-    restart: unless-stopped
-    depends_on:
-      - backend
+  build:
+    context: .
+    dockerfile: Dockerfile.frontend
+    args:
+      VITE_API_BASE_URL: /api
+  restart: unless-stopped
+  depends_on:
+    - backend
