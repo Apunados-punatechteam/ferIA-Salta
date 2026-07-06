@@ -4,7 +4,7 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 export type FeriaJwtUser = {
   sub: string;
   username: string;
-  role: "ENTREPRENEUR" | "FAIR_ORGANIZER" | "MUNICIPALITY";
+  role: "ENTREPRENEUR" | "FAIR_ORGANIZER" | "GOVERNMENT";
   document?: string;
   fullName?: string;
 };

@@ -49,11 +49,11 @@ await upsertUser({
 });
 
 await upsertUser({
-  username: "municipalidad",
-  password: "muni123",
-  fullName: "Municipalidad de Salta",
-  document: "muni-salta",
-  role: FeriaUserRole.MUNICIPALITY,
+  username: "gobierno",
+  password: "gobierno123",
+  fullName: "Gobierno de la Provincia de Salta",
+  document: "gobierno-salta",
+  role: FeriaUserRole.GOVERNMENT,
 });
 
 console.log("Usuarios demo creados correctamente en feria_users.");

@@ -30,7 +30,7 @@ function normalizeOptionalStellarPublicKey(value: unknown): string | undefined {
 }
 
 function normalizeCreatorRole(role: string) {
-  return role === "MUNICIPALITY" ? "MUNICIPALITY" : "FAIR_ORGANIZER";
+  return role === "GOVERNMENT" ? "GOVERNMENT" : "FAIR_ORGANIZER";
 }
 
 const CreateFairSchema = z.object({
@@ -65,7 +65,7 @@ export async function fairsRoutes(app: FastifyInstance) {
   app.post(
     "/fairs",
     {
-      preHandler: [requireRole(["FAIR_ORGANIZER", "MUNICIPALITY"])],
+      preHandler: [requireRole(["FAIR_ORGANIZER", "GOVERNMENT"])],
     },
     async (request, reply) => {
       const parsed = CreateFairSchema.safeParse(request.body);
@@ -138,7 +138,7 @@ export async function fairsRoutes(app: FastifyInstance) {
   app.post(
     "/fairs/decision",
     {
-      preHandler: [requireRole(["MUNICIPALITY"])],
+      preHandler: [requireRole(["GOVERNMENT"])],
     },
     async (request, reply) => {
       const parsed = DecideFairSchema.safeParse(request.body);

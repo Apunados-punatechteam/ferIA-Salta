@@ -18,7 +18,7 @@ type PaymentPricing = {
   receiverPublicKey: string;
   paymentConcept: "ENTREPRENEUR_REGISTRATION_FEE" | "FAIR_PUBLICATION_FEE";
   payerRole: "ENTREPRENEUR" | "FAIR_ORGANIZER";
-  payeeRole: "MUNICIPALITY" | "FAIR_ORGANIZER";
+  payeeRole: "GOVERNMENT" | "FAIR_ORGANIZER";
   payeeDocument: string;
   payeeName: string;
 };
@@ -139,7 +139,7 @@ export async function resolveEntrepreneurRegistrationPricing(params: {
     getAttr(fair, "paymentReceiverPublicKey")
   );
 
-  const municipalityReceiver =
+  const governmentReceiver =
     getPublicKey(
       payload.municipalityReceiverPublicKey,
       getAttr(fair, "municipalityReceiverPublicKey")
@@ -160,22 +160,22 @@ export async function resolveEntrepreneurRegistrationPricing(params: {
         env.STELLAR_FAIR_REGISTRATION_AMOUNT_XLM
     );
 
-  const fairWasCreatedByMunicipality =
-    createdByRole === "MUNICIPALITY" ||
-    createdByRole === "MUNICIPALIDAD";
+  const fairWasCreatedByGovernment =
+    createdByRole === "GOVERNMENT" ||
+    createdByRole === "GOBIERNO";
 
-  if (fairWasCreatedByMunicipality || !fairOrganizerReceiver) {
+  if (fairWasCreatedByGovernment || !fairOrganizerReceiver) {
     return {
       amountXlm,
-      receiverPublicKey: municipalityReceiver,
+      receiverPublicKey: governmentReceiver,
       paymentConcept: "ENTREPRENEUR_REGISTRATION_FEE",
       payerRole: "ENTREPRENEUR",
-      payeeRole: "MUNICIPALITY",
+      payeeRole: "GOVERNMENT",
       payeeDocument: getText(
         payload.createdByDocument,
-        payload.municipalityDocument
+        payload.governmentDocument
       ),
-      payeeName: getText(payload.createdByName, "Municipalidad"),
+      payeeName: getText(payload.createdByName, "Gobierno"),
     };
   }
 
@@ -202,8 +202,8 @@ export function resolveFairPublicationPricing(): PaymentPricing {
       env.STELLAR_RECEIVER_PUBLIC_KEY,
     paymentConcept: "FAIR_PUBLICATION_FEE",
     payerRole: "FAIR_ORGANIZER",
-    payeeRole: "MUNICIPALITY",
+    payeeRole: "GOVERNMENT",
     payeeDocument: "",
-    payeeName: "Municipalidad",
+    payeeName: "Gobierno",
   };
 }

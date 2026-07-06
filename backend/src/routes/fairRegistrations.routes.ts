@@ -40,7 +40,7 @@ type CancellationPayload = {
 const CancelRegistrationSchema = z.object({
   fairKey: z.string().min(10),
   registrationKey: z.string().min(10),
-  notes: z.string().default("Cancelled by municipality."),
+  notes: z.string().default("Cancelled by government."),
 });
 
 const fairLocks = new Map<string, Promise<void>>();
@@ -353,7 +353,7 @@ export async function fairRegistrationsRoutes(app: FastifyInstance) {
   app.post(
     "/fair-registrations/cancel",
     {
-      preHandler: [requireRole(["MUNICIPALITY"])],
+      preHandler: [requireRole(["GOVERNMENT"])],
     },
     async (request, reply) => {
       const parsed = CancelRegistrationSchema.safeParse(request.body);

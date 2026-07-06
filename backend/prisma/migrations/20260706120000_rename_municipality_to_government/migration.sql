@@ -1,0 +1,2 @@
+-- RenameEnumValue
+ALTER TYPE "FeriaUserRole" RENAME VALUE 'MUNICIPALITY' TO 'GOVERNMENT';

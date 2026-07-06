@@ -197,7 +197,7 @@ export async function stellarPaymentsRoutes(app: FastifyInstance) {
   app.post(
     "/stellar/payments/verify",
     {
-      preHandler: [requireRole(["ENTREPRENEUR", "MUNICIPALITY"])],
+      preHandler: [requireRole(["ENTREPRENEUR", "GOVERNMENT"])],
     },
     async (request, reply) => {
       const parsed = VerifyPaymentSchema.safeParse(request.body);
@@ -225,7 +225,7 @@ export async function stellarPaymentsRoutes(app: FastifyInstance) {
         });
       }
 
-      if (user.role !== "MUNICIPALITY" && payment.userId !== user.sub) {
+      if (user.role !== "GOVERNMENT" && payment.userId !== user.sub) {
         return reply.code(403).send({
           ok: false,
           error: "No tenés permiso para verificar este pago.",
@@ -290,7 +290,7 @@ export async function stellarPaymentsRoutes(app: FastifyInstance) {
   app.post(
     "/stellar/payments/cleanup-duplicates",
     {
-      preHandler: [requireRole(["MUNICIPALITY"])],
+      preHandler: [requireRole(["GOVERNMENT"])],
     },
     async () => {
       const confirmedPayments = await prisma.stellarPayment.findMany({
@@ -336,7 +336,7 @@ export async function stellarPaymentsRoutes(app: FastifyInstance) {
   app.get(
     "/stellar/payments",
     {
-      preHandler: [requireRole(["ENTREPRENEUR", "MUNICIPALITY"])],
+      preHandler: [requireRole(["ENTREPRENEUR", "GOVERNMENT"])],
     },
     async (request, reply) => {
       const user = getJwtUser(request.user);
@@ -352,7 +352,7 @@ export async function stellarPaymentsRoutes(app: FastifyInstance) {
 
       const payments = await prisma.stellarPayment.findMany({
         where: {
-          ...(user.role === "MUNICIPALITY"
+          ...(user.role === "GOVERNMENT"
             ? {}
             : {
                 userId: user.sub,
@@ -389,7 +389,7 @@ export async function stellarPaymentsRoutes(app: FastifyInstance) {
   app.get(
     "/stellar/payments/registration/:registrationKey",
     {
-      preHandler: [requireRole(["ENTREPRENEUR", "MUNICIPALITY"])],
+      preHandler: [requireRole(["ENTREPRENEUR", "GOVERNMENT"])],
     },
     async (request, reply) => {
       const user = getJwtUser(request.user);
@@ -409,7 +409,7 @@ export async function stellarPaymentsRoutes(app: FastifyInstance) {
       const payments = await prisma.stellarPayment.findMany({
         where: {
           registrationKey,
-          ...(user.role === "MUNICIPALITY"
+          ...(user.role === "GOVERNMENT"
             ? {}
             : {
                 userId: user.sub,

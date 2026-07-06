@@ -16,7 +16,7 @@ export const ENTITY_TYPES = {
   FAIR_REGISTRATION: "fair_registration",
   FAIR_REGISTRATION_CANCELLATION: "fair_registration_cancellation",
   FAIR_CERTIFICATE: "fair_certificate",
-  MUNICIPALITY_DECISION: "municipality_decision",
+  GOVERNMENT_DECISION: "government_decision",
 } as const;
 
 const publicClient = createPublicClient({
@@ -172,7 +172,7 @@ export async function createFairEvent(params: {
   availableSlots: number;
   latitude: number;
   longitude: number;
-  createdByRole: "FAIR_ORGANIZER" | "MUNICIPALITY";
+  createdByRole: "FAIR_ORGANIZER" | "GOVERNMENT";
   registrationFeeXlm?: string;
   paymentReceiverPublicKey?: string;
   municipalityPublicationFeeXlm?: string;
@@ -244,7 +244,7 @@ export async function createFairEventDecision(params: {
     fairCity: params.fairCity,
     decision: params.decision,
     notes: params.notes,
-    decidedByRole: "municipality",
+    decidedByRole: "government",
     decidedByName: params.decidedByName,
     decidedByDocument: params.decidedByDocument,
     decidedAt,
@@ -258,7 +258,7 @@ export async function createFairEventDecision(params: {
       { key: "fairKey", value: params.fairKey },
       { key: "decision", value: params.decision },
       { key: "status", value: params.decision },
-      { key: "decidedByRole", value: "municipality" },
+      { key: "decidedByRole", value: "government" },
       { key: "decidedByDocument", value: params.decidedByDocument },
       { key: "decidedAt", value: decidedAt },
     ],
@@ -367,7 +367,7 @@ export async function createFairRegistrationCancellation(params: {
     registrationKey: params.registrationKey,
     notes: params.notes,
     status: "cancelled",
-    cancelledByRole: "municipality",
+    cancelledByRole: "government",
     cancelledByName: params.cancelledByName,
     cancelledByDocument: params.cancelledByDocument,
     cancelledAt,

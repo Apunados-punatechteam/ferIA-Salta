@@ -10,7 +10,7 @@ datasource db {
 enum FeriaUserRole {
   ENTREPRENEUR
   FAIR_ORGANIZER
-  MUNICIPALITY
+  GOVERNMENT
 }
 
 model FeriaUser {
@@ -65,4 +65,17 @@ model StellarPayment {
   @@index([fairKey])
   @@index([status])
   @@map("feria_stellar_payments")
+}
+
+model ContactMessage {
+  id           String   @id @default(uuid())
+  nombre       String
+  email        String
+  telefono     String?
+  municipio    String
+  tipoConsulta String   @map("tipo_consulta")
+  mensaje      String
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("contact_messages")
 }
