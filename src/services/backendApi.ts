@@ -549,6 +549,23 @@ export async function backendListApprovedPublicFairs(): Promise<PublicFairSummar
   return data.fairs;
 }
 
+export type ContactPayload = {
+  nombre: string;
+  email: string;
+  telefono?: string;
+  municipio: string;
+  tipoConsulta: string;
+  mensaje: string;
+};
+
+export async function backendSendContact(payload: ContactPayload): Promise<void> {
+  await requestJson<{ ok: boolean }>({
+    path: "/public/contact",
+    method: "POST",
+    body: payload,
+  });
+}
+
 export type StellarRegistrationPaymentSummary = {
   registrationKey: string;
   paymentStatus: "CONFIRMED" | "PENDING" | "UNPAID";
