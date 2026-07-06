@@ -74,7 +74,27 @@ spec cubre únicamente: (1) el rename técnico completo del rol
   (`requireRole([...])`, comparaciones `user.role === "MUNICIPALITY"`)
   pasan a `GOVERNMENT`.
 - `backend/src/arkivService.ts`: el entityType `"municipality_decision"`
-  pasa a `"government_decision"`.
+  pasa a `"government_decision"` (clave `MUNICIPALITY_DECISION` →
+  `GOVERNMENT_DECISION` en `ENTITY_TYPES`). El campo tipado
+  `createdByRole: "FAIR_ORGANIZER" | "MUNICIPALITY"` pasa a incluir
+  `"GOVERNMENT"`. Los valores de payload/atributo `decidedByRole:
+  "municipality"` y `cancelledByRole: "municipality"` (representan quién
+  tomó la decisión/cancelación, no un campo de Stellar) pasan a
+  `"government"`. Los campos `municipalityPublicationFeeXlm`/
+  `municipalityReceiverPublicKey` de este mismo archivo NO se tocan (son
+  específicos de Stellar).
+- `backend/src/stellarPricingService.ts`: aunque el archivo es sobre
+  pricing de Stellar, el tipo `payeeRole: "MUNICIPALITY" |
+  "FAIR_ORGANIZER"` identifica al ACTOR que cobra (no un campo de
+  configuración de Stellar en sí) y pasa a `"GOVERNMENT"`. Mismo criterio
+  para las comparaciones `createdByRole === "MUNICIPALITY"` (y el chequeo
+  redundante `=== "MUNICIPALIDAD"`, que nunca podía ser cierto — se
+  renombra igual a `"GOBIERNO"` sin cambiar la lógica) y el nombre de
+  variable local `fairWasCreatedByMunicipality` →
+  `fairWasCreatedByGovernment`. El fallback de nombre a mostrar
+  `payeeName: "Municipalidad"` (dos ocurrencias) pasa a la forma corta
+  `"Gobierno"`. Las referencias a `env.STELLAR_MUNICIPALITY_RECEIVER_PUBLIC_KEY`
+  y `municipalityReceiverPublicKey` NO se tocan (específicas de Stellar).
 
 **Frontend:**
 - `src/types/feria.ts`: `UserRole` (`"municipality"` → `"government"`),
@@ -100,6 +120,38 @@ spec cubre únicamente: (1) el rename técnico completo del rol
   "Registrate como emprendedor o feriante. La municipalidad se crea solo
   desde administracion." pasa a "...El gobierno se crea solo desde
   administracion."
+- `src/services/arkivService.ts`: el import de tipo `MunicipalityDecision`
+  pasa a `GovernmentDecision` (ver rename de tipos arriba); la función
+  `createArkivMunicipalityDecisionEntity` pasa a
+  `createArkivGovernmentDecisionEntity`; y las referencias
+  `EXPIRATION_SECONDS.MUNICIPALITY_DECISION`/`ENTITY_TYPES.MUNICIPALITY_DECISION`
+  (de `src/lib/arkiv.ts`) pasan a `GOVERNMENT_DECISION`.
+- `src/lib/arkiv.ts`: la clave `MUNICIPALITY_DECISION` en los objetos
+  `ENTITY_TYPES` y `EXPIRATION_SECONDS` pasa a `GOVERNMENT_DECISION` (esto
+  es aparte del identificador `"feria-arkiv-punatech26-salta-7x9k"` de ese
+  mismo archivo, que sigue fuera de alcance).
+- `src/types/feria.ts`: además de lo ya listado, el campo
+  `municipalApprovalAt?: number` en `FairCertificate` pasa a
+  `governmentApprovalAt?: number`.
+- `src/components/StellarPaymentsPanel.tsx` (línea 392): el fallback de
+  display `{activePayment.payeeRole ?? "MUNICIPALITY"}` pasa a
+  `"GOVERNMENT"` (sigue el tipo `payeeRole` renombrado en
+  `stellarPricingService.ts`).
+- `src/components/PublicLandingPage.tsx`: la tarjeta de sponsor
+  `{ id: "muni", name: "Municipalidad de Salta", category: "Gobierno
+  Municipal", ... }` (dentro de `SPONSORS`) pasa a representar al
+  gobierno provincial: `name: "Gobierno de la Provincia de Salta"`,
+  `category: "Gobierno Provincial"` (la descripción y el ícono se
+  mantienen, o se ajustan mínimamente si "apoyo... gestión de ferias
+  urbanas" ya no aplica — ver Task correspondiente en el plan).
+- `src/components/FairOrganizerPanel.tsx`: el copy visible que menciona
+  "municipalidad"/"municipal" (líneas 24, 114, 159, 166, 300, 319, 328,
+  399) pasa a "gobierno"/"del gobierno". Los campos de formulario
+  `municipalityPublicationFeeXlm`/`municipalityReceiverPublicKey` de este
+  archivo NO se tocan (específicos de Stellar).
+- `README.md` (línea 3, además de la línea 117 ya listada en la sección de
+  branding): "Sistema integral para emprendedores, organizadores y
+  administración municipal" pasa a "... y el gobierno provincial".
 - `src/App.tsx`: `roleLabel()` (nueva rama para `"government"` →
   `"Gobierno"`), el label del botón de mode-toggle
   (`"Municipalidad"` → texto corto `"Gobierno"`), `AppSection`/
