@@ -1,4 +1,5 @@
 ﻿import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { RegisterAccountPanel } from "./components/RegisterAccountPanel";
 import "./index.css";
 
@@ -291,80 +292,79 @@ function LoginScreen({
   }
 
   return (
-    <main className="login-shell">
-      <PublicLandingPage />
-
-      <section id="login-card" className="login-card">
-        <div>
-          <p className="eyebrow">PunaTech Hackathon - Arkiv Track</p>
-          <h1>FerIA</h1>
-          <p className="hero-subtitle">
-            Flujo productivo para feriantes, emprendedores y municipalidad.
-            El login usa backend, PostgreSQL, bcrypt y JWT.
-          </p>
-        </div>
-{errorMessage && <div className="error-banner">{errorMessage}</div>}
-
-        <form className="login-form" onSubmit={handleSubmit}>
-          <label>
-            Usuario
-            <input
-              value={username}
-              onChange={(event) => setUsuarioname(event.target.value)}
-              placeholder="municipalidad"
-            />
-          </label>
-
-          <label>
-            Contrasena
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setContrasena(event.target.value)}
-              placeholder="password"
-            />
-          </label>
-
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Ingresando..." : "Ingresar a FerIA"}
-          </button>
-        </form>
-
-        <div className="login-hint">
-          <RegisterAccountPanel />
-<strong>Usuarios demo:</strong>
-
-          <div className="demo-users-grid">
-            <button
-              type="button"
-              className="demo-user-button"
-              onClick={() => fillDemoUsuario("emprendedor", "emprendedor123")}
-            >
-              <span>Emprendedor</span>
-              <code>emprendedor / emprendedor123</code>
-            </button>
-
-            <button
-              type="button"
-              className="demo-user-button"
-              onClick={() => fillDemoUsuario("feriante", "feriante123")}
-            >
-              <span>Feriante</span>
-              <code>feriante / feriante123</code>
-            </button>
-
-            <button
-              type="button"
-              className="demo-user-button"
-              onClick={() => fillDemoUsuario("municipalidad", "muni123")}
-            >
-              <span>Municipalidad</span>
-              <code>municipalidad / muni123</code>
-            </button>
+    <div className="login-section">
+      <section className="login-card">
+          <div>
+            <p className="eyebrow">PunaTech Hackathon - Arkiv Track</p>
+            <h1>FerIA</h1>
+            <p className="hero-subtitle">
+              Flujo productivo para feriantes, emprendedores y municipalidad.
+              El login usa backend, PostgreSQL, bcrypt y JWT.
+            </p>
           </div>
-        </div>
-      </section>
-    </main>
+
+          {errorMessage && <div className="error-banner">{errorMessage}</div>}
+
+          <form className="login-form" onSubmit={handleSubmit}>
+            <label>
+              Usuario
+              <input
+                value={username}
+                onChange={(event) => setUsuarioname(event.target.value)}
+                placeholder="municipalidad"
+              />
+            </label>
+
+            <label>
+              Contrasena
+              <input
+                type="password"
+                value={password}
+                onChange={(event) => setContrasena(event.target.value)}
+                placeholder="password"
+              />
+            </label>
+
+            <button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Ingresando..." : "Ingresar a FerIA"}
+            </button>
+          </form>
+
+          <div className="login-hint">
+            <RegisterAccountPanel />
+            <strong>Usuarios demo:</strong>
+
+            <div className="demo-users-grid">
+              <button
+                type="button"
+                className="demo-user-button"
+                onClick={() => fillDemoUsuario("emprendedor", "emprendedor123")}
+              >
+                <span>Emprendedor</span>
+                <code>emprendedor / emprendedor123</code>
+              </button>
+
+              <button
+                type="button"
+                className="demo-user-button"
+                onClick={() => fillDemoUsuario("feriante", "feriante123")}
+              >
+                <span>Feriante</span>
+                <code>feriante / feriante123</code>
+              </button>
+
+              <button
+                type="button"
+                className="demo-user-button"
+                onClick={() => fillDemoUsuario("municipalidad", "muni123")}
+              >
+                <span>Municipalidad</span>
+                <code>municipalidad / muni123</code>
+              </button>
+            </div>
+          </div>
+        </section>
+    </div>
   );
 }
 
@@ -447,6 +447,7 @@ function App() {
   const [hasInitialSyncRun, setHasInitialSyncRun] = useState(false);
 const [errorMessage, setErrorMessage] = useState("");
   const [lastSyncFuente, setLastSyncFuente] = useState("Sin sincronizar");
+  const navigate = useNavigate();
 
   const latestFairDecisionByFairKey = useMemo(
     () => getLatestFairDecisionByFairKey(entities),
@@ -546,13 +547,15 @@ const [errorMessage, setErrorMessage] = useState("");
     setEntities([]);
     setHasInitialSyncRun(false);
     setActiveSection("entrepreneur");
+    navigate("/");
   }
 
   function handleLogin(user: AuthUser) {
     setAuthUser(user);
     setEntities([]);
     setHasInitialSyncRun(false);
-setActiveSection(getDefaultSectionForRol(user.role));
+    setActiveSection(getDefaultSectionForRol(user.role));
+    navigate("/");
   }
 
   function renderHeader() {
@@ -935,22 +938,39 @@ function renderStats() {
     );
   }
 
-  if (!authUsuario) {
-    return <LoginScreen onLogin={handleLogin} />;
-  }
-
   return (
-    <main className="app-shell">
-      {renderHeader()}
-{errorMessage && <div className="error-banner">{errorMessage}</div>}
+    <Routes>
+      <Route
+        path="/login"
+        element={
+          authUsuario ? (
+            <Navigate to="/" replace />
+          ) : (
+            <LoginScreen onLogin={handleLogin} />
+          )
+        }
+      />
+      <Route
+        path="/"
+        element={
+          !authUsuario ? (
+            <PublicLandingPage />
+          ) : (
+            <main className="app-shell">
+              {renderHeader()}
+              {errorMessage && <div className="error-banner">{errorMessage}</div>}
 
-      {renderStats()}
+              {renderStats()}
 
-      {canAccessSectionByRole(getAuthToken(), "entrepreneur" as AppSection) && activeSection === "entrepreneur" && renderEntrepreneurPanel()}
-      {canAccessSectionByRole(getAuthToken(), "fair_organizer" as AppSection) && activeSection === "fair_organizer" && renderFairOrganizerPanel()}
-      {activeSection === "municipality" && renderMunicipalidadPanel()}
-      {canAccessSectionByRole(getAuthToken(), "all" as AppSection) && activeSection === "all" && renderAllPanel()}
-    </main>
+              {canAccessSectionByRole(getAuthToken(), "entrepreneur" as AppSection) && activeSection === "entrepreneur" && renderEntrepreneurPanel()}
+              {canAccessSectionByRole(getAuthToken(), "fair_organizer" as AppSection) && activeSection === "fair_organizer" && renderFairOrganizerPanel()}
+              {activeSection === "municipality" && renderMunicipalidadPanel()}
+              {canAccessSectionByRole(getAuthToken(), "all" as AppSection) && activeSection === "all" && renderAllPanel()}
+            </main>
+          )
+        }
+      />
+    </Routes>
   );
 }
 
