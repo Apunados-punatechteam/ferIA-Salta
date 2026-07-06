@@ -19,7 +19,7 @@ import type {
   FairEventPayload,
   FairMapEvent,
   FairRegistration,
-  MunicipalityDecision,
+  GovernmentDecision,
   LocalArkivEntity,
 } from "../types/feria";
 
@@ -276,7 +276,7 @@ export async function createArkivFairCertificateEntity(params: {
   businessName: string;
   fairName: string;
   approvedBy?: string;
-  municipalApprovalAt?: number;
+  governmentApprovalAt?: number;
 }): Promise<LocalArkivEntity<FairCertificate>> {
   const issuedAt = Date.now();
 
@@ -293,7 +293,7 @@ export async function createArkivFairCertificateEntity(params: {
     businessName: params.businessName,
     fairName: params.fairName,
     approvedBy: params.approvedBy,
-    municipalApprovalAt: params.municipalApprovalAt,
+    governmentApprovalAt: params.governmentApprovalAt,
     issuedAt,
     status: "issued",
   };
@@ -319,10 +319,10 @@ export async function createArkivFairCertificateEntity(params: {
     attributes.push({ key: "approvedBy", value: params.approvedBy });
   }
 
-  if (params.municipalApprovalAt) {
+  if (params.governmentApprovalAt) {
     attributes.push({
-      key: "municipalApprovalAt",
-      value: params.municipalApprovalAt,
+      key: "governmentApprovalAt",
+      value: params.governmentApprovalAt,
     });
   }
 
@@ -412,7 +412,7 @@ export async function createArkivFairRegistrationEntity(params: {
 }
 
 
-export async function createArkivMunicipalityDecisionEntity(params: {
+export async function createArkivGovernmentDecisionEntity(params: {
   registrationKey: string;
   fairKey: string;
   fairSlug: string;
@@ -423,10 +423,10 @@ export async function createArkivMunicipalityDecisionEntity(params: {
   decision: "approved" | "rejected";
   decidedBy: string;
   notes: string;
-}): Promise<LocalArkivEntity<MunicipalityDecision>> {
+}): Promise<LocalArkivEntity<GovernmentDecision>> {
   const decidedAt = Date.now();
 
-  const payload: MunicipalityDecision = {
+  const payload: GovernmentDecision = {
     registrationKey: params.registrationKey,
     fairKey: params.fairKey,
     fairSlug: params.fairSlug,
@@ -442,11 +442,11 @@ export async function createArkivMunicipalityDecisionEntity(params: {
 
   return createJsonEntity({
     payload,
-    expiresIn: EXPIRATION_SECONDS.MUNICIPALITY_DECISION,
+    expiresIn: EXPIRATION_SECONDS.GOVERNMENT_DECISION,
     createdAt: decidedAt,
     attributes: [
       PROJECT_ATTRIBUTE,
-      { key: "entityType", value: ENTITY_TYPES.MUNICIPALITY_DECISION },
+      { key: "entityType", value: ENTITY_TYPES.GOVERNMENT_DECISION },
       { key: "registrationKey", value: params.registrationKey },
       { key: "fairKey", value: params.fairKey },
       { key: "fairSlug", value: params.fairSlug },

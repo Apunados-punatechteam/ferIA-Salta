@@ -91,7 +91,7 @@ export function RegisterAccountPanel() {
               <p className="eyebrow">Registro publico</p>
               <h3>Crear cuenta</h3>
               <p>
-                Registrate como emprendedor o feriante. La municipalidad se crea solo desde administracion.
+                Registrate como emprendedor o feriante. El gobierno se crea solo desde administracion.
               </p>
             </div>
           </div>

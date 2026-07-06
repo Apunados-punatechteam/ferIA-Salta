@@ -133,7 +133,7 @@ function getActiveRegistrationCount(
   ).length;
 }
 
-export function MunicipalityRegistrationsPanel({
+export function GovernmentRegistrationsPanel({
   token,
   entities,
   onCancelled,
@@ -234,7 +234,7 @@ export function MunicipalityRegistrationsPanel({
 
     const notes =
       notesByRegistrationKey[registrationKey]?.trim() ||
-      "Baja municipal. Se libera cupo.";
+      "Baja del gobierno. Se libera cupo.";
 
     const confirmed = window.confirm(
       "Confirmar baja de esta inscripcion? Esta accion libera un cupo de la feria seleccionada."
@@ -340,8 +340,8 @@ export function MunicipalityRegistrationsPanel({
     const isProcessing = processingRegistrationKey === item.entity.entityKey;
 
     return (
-      <article className="municipality-registration-card" key={item.entity.entityKey}>
-        <div className="municipality-registration-card__top">
+      <article className="government-registration-card" key={item.entity.entityKey}>
+        <div className="government-registration-card__top">
           <span
             className={
               item.isCancelled
@@ -362,7 +362,7 @@ export function MunicipalityRegistrationsPanel({
           {item.payload.entrepreneurDocument ?? "-"}
         </p>
 
-        <div className="municipality-fair-card__meta">
+        <div className="government-fair-card__meta">
           <div>
             <span>Feria</span>
             <strong>{item.payload.fairName ?? selectedFairPayload?.name ?? "Feria"}</strong>
@@ -377,7 +377,7 @@ export function MunicipalityRegistrationsPanel({
           </div>
           <div>
             <span>Estado</span>
-            <strong>{item.isCancelled ? "Baja municipal" : "Activa"}</strong>
+            <strong>{item.isCancelled ? "Baja del gobierno" : "Activa"}</strong>
           </div>
         </div>
 
@@ -451,7 +451,7 @@ export function MunicipalityRegistrationsPanel({
   return (
     <SafeTabs
       title="Baja de inscripciones por feria"
-      subtitle="Selecciona una feria aprobada, revisa inscripciones activas y libera cupos con baja municipal."
+      subtitle="Selecciona una feria aprobada, revisa inscripciones activas y libera cupos con baja del gobierno."
       tabs={[
         {
           id: "feria",
@@ -462,7 +462,7 @@ export function MunicipalityRegistrationsPanel({
               <div className="panel span-2-panel">
                 <div className="panel-header">
                   <div>
-                    <p className="eyebrow">Municipalidad</p>
+                    <p className="eyebrow">Gobierno de la Provincia de Salta</p>
                     <h2>Seleccionar feria aprobada</h2>
                   </div>
                   <span className="status-pill">
@@ -499,7 +499,7 @@ export function MunicipalityRegistrationsPanel({
                     No hay inscripciones activas para esta feria.
                   </p>
                 ) : (
-                  <div className="municipality-registration-list">
+                  <div className="government-registration-list">
                     {activeRegistrations.map(renderRegistrationCard)}
                   </div>
                 )}
@@ -516,7 +516,7 @@ export function MunicipalityRegistrationsPanel({
               <div className="panel">
                 <div className="panel-header">
                   <div>
-                    <p className="eyebrow">Auditoria municipal</p>
+                    <p className="eyebrow">Auditoria del gobierno</p>
                     <h2>Bajas de la feria seleccionada</h2>
                   </div>
                   <span className="status-pill">
@@ -531,7 +531,7 @@ export function MunicipalityRegistrationsPanel({
                     Todavia no hay bajas registradas para esta feria.
                   </p>
                 ) : (
-                  <div className="municipality-registration-list">
+                  <div className="government-registration-list">
                     {cancelledRegistrations.map(renderRegistrationCard)}
                   </div>
                 )}

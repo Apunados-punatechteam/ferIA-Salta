@@ -1,4 +1,4 @@
-﻿export function answerMunicipalityQuestion(message: string): string {
+﻿export function answerGovernmentQuestion(message: string): string {
   const text = message.toLowerCase().trim();
 
   if (!text) {

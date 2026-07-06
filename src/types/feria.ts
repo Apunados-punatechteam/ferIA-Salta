@@ -8,7 +8,7 @@ export type EntityType =
   | "fair_event"
   | "fair_event_decision"
   | "fair_registration"
-  | "municipality_decision";
+  | "government_decision";
 
 export type ChatRole = "user" | "assistant";
 
@@ -19,7 +19,7 @@ export type ChatMessage = {
   createdAt: number;
 };
 
-export type UserRole = "entrepreneur" | "fair_organizer" | "municipality";
+export type UserRole = "entrepreneur" | "fair_organizer" | "government";
 
 export type AuthUser = {
   id: string;
@@ -66,7 +66,7 @@ export type FairCertificate = {
   businessName: string;
   fairName: string;
   approvedBy?: string;
-  municipalApprovalAt?: number;
+  governmentApprovalAt?: number;
   issuedAt: number;
   status: "issued";
 };
@@ -120,9 +120,9 @@ export type FairRegistration = {
   createdAt: number;
 };
 
-export type MunicipalityDecisionValue = "approved" | "rejected";
+export type GovernmentDecisionValue = "approved" | "rejected";
 
-export type MunicipalityDecision = {
+export type GovernmentDecision = {
   registrationKey: string;
   fairKey: string;
   fairSlug: string;
@@ -130,7 +130,7 @@ export type MunicipalityDecision = {
   entrepreneurName: string;
   documentNumber: string;
   businessName: string;
-  decision: MunicipalityDecisionValue;
+  decision: GovernmentDecisionValue;
   decidedBy: string;
   notes: string;
   decidedAt: number;

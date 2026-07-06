@@ -9,7 +9,7 @@ const API_BASE_URL =
 
 const TOKEN_STORAGE_KEY = "feria_backend_token";
 
-export type BackendRole = "ENTREPRENEUR" | "FAIR_ORGANIZER" | "MUNICIPALITY";
+export type BackendRole = "ENTREPRENEUR" | "FAIR_ORGANIZER" | "GOVERNMENT";
 
 export type BackendUser = {
   id: string;
@@ -44,7 +44,7 @@ export type BackendFairDecisionResponse = {
 };
 
 export function mapBackendRoleToUserRole(role: BackendRole): UserRole {
-  if (role === "MUNICIPALITY") return "municipality";
+  if (role === "GOVERNMENT") return "government";
   if (role === "FAIR_ORGANIZER") return "fair_organizer";
   return "entrepreneur";
 }

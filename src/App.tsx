@@ -4,8 +4,8 @@ import { RegisterAccountPanel } from "./components/RegisterAccountPanel";
 import "./index.css";
 
 import { FairOrganizerPanel } from "./components/FairOrganizerPanel";
-import { MunicipalityApprovalPanel } from "./components/MunicipalityApprovalPanel";
-import { MunicipalityRegistrationsPanel } from "./components/MunicipalityRegistrationsPanel";
+import { GovernmentApprovalPanel } from "./components/GovernmentApprovalPanel";
+import { GovernmentRegistrationsPanel } from "./components/GovernmentRegistrationsPanel";
 import { ProfileScopedDashboard } from "./components/ProfileScopedDashboard";
 import { EntrepreneurRegistrationPanel } from "./components/EntrepreneurRegistrationPanel";
 import { StellarPaymentsPanel } from "./components/StellarPaymentsPanel";
@@ -23,7 +23,7 @@ const options = defaultUiOptionsForLegacyPatch;
 
 const AUTH_STORAGE_KEY = "feria_auth_user_prod";
 
-type AppSection = "entrepreneur" | "fair_organizer" | "municipality" | "all";
+type AppSection = "entrepreneur" | "fair_organizer" | "government" | "all";
 
 
 function getCurrentUserFromToken(token: string | null): {
@@ -80,7 +80,7 @@ function getScopedMetricEntities(
   const document = String(user.document ?? "");
   const userId = String(user.sub ?? "");
 
-  if (role === "MUNICIPALITY" || activeSection === "all") {
+  if (role === "GOVERNMENT" || activeSection === "all") {
     return entities;
   }
 
@@ -166,13 +166,13 @@ function clearAuthUser(): void {
 }
 
 function roleLabel(role: UserRole): string {
-  if (role === "municipality") return "Municipalidad";
+  if (role === "government") return "Gobierno";
   if (role === "fair_organizer") return "Feriante";
   return "Emprendedor";
 }
 
 function getDefaultSectionForRol(role?: UserRole): AppSection {
-  if (role === "municipality") return "municipality";
+  if (role === "government") return "government";
   if (role === "fair_organizer") return "fair_organizer";
   return "entrepreneur";
 }
@@ -205,7 +205,7 @@ function entityLabel(entityType: string): string {
     fair_event: "Feria",
     fair_event_decision: "Feria decision",
     fair_registration: "Feria registration",
-    municipality_decision: "Decision municipal",
+    government_decision: "Decision del gobierno",
     assistant_message: "Mensaje IA",
     payment_record: "Pago",
     user_profile: "Usuario",
@@ -245,8 +245,8 @@ function LoginScreen({
 }: {
   onLogin: (user: AuthUser) => void;
 }) {
-  const [username, setUsuarioname] = useState("municipalidad");
-  const [password, setContrasena] = useState("muni123");
+  const [username, setUsuarioname] = useState("gobierno");
+  const [password, setContrasena] = useState("gobierno123");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -298,7 +298,7 @@ function LoginScreen({
             <p className="eyebrow">PunaTech Hackathon - Arkiv Track</p>
             <h1>FerIA</h1>
             <p className="hero-subtitle">
-              Flujo productivo para feriantes, emprendedores y municipalidad.
+              Flujo productivo para feriantes, emprendedores y el gobierno provincial.
               El login usa backend, PostgreSQL, bcrypt y JWT.
             </p>
           </div>
@@ -311,7 +311,7 @@ function LoginScreen({
               <input
                 value={username}
                 onChange={(event) => setUsuarioname(event.target.value)}
-                placeholder="municipalidad"
+                placeholder="gobierno"
               />
             </label>
 
@@ -356,10 +356,10 @@ function LoginScreen({
               <button
                 type="button"
                 className="demo-user-button"
-                onClick={() => fillDemoUsuario("municipalidad", "muni123")}
+                onClick={() => fillDemoUsuario("gobierno", "gobierno123")}
               >
-                <span>Municipalidad</span>
-                <code>municipalidad / muni123</code>
+                <span>Gobierno</span>
+                <code>gobierno / gobierno123</code>
               </button>
             </div>
           </div>
@@ -431,7 +431,7 @@ function decodeTokenRole(token: string | null): string {
 function canAccessSectionByRole(token: string | null, section: AppSection): boolean {
   const role = decodeTokenRole(token);
 
-  if (role === "municipality") return true;
+  if (role === "government") return true;
   if (role === "fair_organizer") return section === "fair_organizer";
   return section === "entrepreneur";
 }
@@ -477,7 +477,7 @@ const [errorMessage, setErrorMessage] = useState("");
         if (type === "fair_certificate") acc.certificates += 1;
         if (type === "fair_event") acc.fairs += 1;
         if (type === "fair_registration") acc.registrations += 1;
-        if (type === "municipality_decision") acc.decisions += 1;
+        if (type === "government_decision") acc.decisions += 1;
         if (type === "fair_event_decision") acc.fairDecisions += 1;
 
         return acc;
@@ -506,7 +506,7 @@ const [errorMessage, setErrorMessage] = useState("");
 
   const decisionEntities = useMemo(() => {
     return entities.filter((entity) =>
-      ["municipality_decision", "fair_event_decision"].includes(
+      ["government_decision", "fair_event_decision"].includes(
         getEntityType(entity)
       )
     );
@@ -590,10 +590,10 @@ const [errorMessage, setErrorMessage] = useState("");
 
             <button
               type="button"
-              className={activeSection === "municipality" ? "mode-active" : "ghost"}
-              disabled={!canAccessSectionByRole(getAuthToken(), "municipality" as AppSection)} onClick={() => canAccessSectionByRole(getAuthToken(), "municipality" as AppSection) && setActiveSection("municipality" as AppSection)}
+              className={activeSection === "government" ? "mode-active" : "ghost"}
+              disabled={!canAccessSectionByRole(getAuthToken(), "government" as AppSection)} onClick={() => canAccessSectionByRole(getAuthToken(), "government" as AppSection) && setActiveSection("government" as AppSection)}
             >
-              Municipalidad
+              Gobierno
             </button>
 
             <button
@@ -774,8 +774,8 @@ function renderStats() {
                 <span>Backend signs and writes en Arkiv.</span>
               </div>
               <div>
-                <strong>4. Decision municipal</strong>
-                <span>Municipalidad approves or rejects.</span>
+                <strong>4. Decision del gobierno</strong>
+                <span>Gobierno approves or rejects.</span>
               </div>
             </div>
           </div>
@@ -784,17 +784,17 @@ function renderStats() {
     );
   }
 
-  function renderMunicipalidadPanel() {
+  function renderGovernmentPanel() {
     return (
       <>
-        <MunicipalityApprovalPanel
+        <GovernmentApprovalPanel
           token={getAuthToken()}
           entities={entities}
           onDecisionCreated={handleSyncFromBackend}
         />
 
 
-        <MunicipalityRegistrationsPanel
+        <GovernmentRegistrationsPanel
           token={getAuthToken()}
           entities={entities}
           onCancelled={handleSyncFromBackend}
@@ -803,7 +803,7 @@ function renderStats() {
         <ProfileScopedDashboard
           token={getAuthToken()}
           entities={entities}
-          mode="municipality"
+          mode="government"
         />
         <section className="grid-layout bottom-grid">
           {renderEntitiesPanel("Auditoria completa Arkiv")}
@@ -912,7 +912,7 @@ function renderStats() {
             <div className="panel-header">
               <div>
                 <p className="eyebrow">Decisiones</p>
-                <h2>municipality_decision / fair_event_decision</h2>
+                <h2>government_decision / fair_event_decision</h2>
               </div>
               <span className="status-pill">
                 {decisionEntities.length} decisions
@@ -964,7 +964,7 @@ function renderStats() {
 
               {canAccessSectionByRole(getAuthToken(), "entrepreneur" as AppSection) && activeSection === "entrepreneur" && renderEntrepreneurPanel()}
               {canAccessSectionByRole(getAuthToken(), "fair_organizer" as AppSection) && activeSection === "fair_organizer" && renderFairOrganizerPanel()}
-              {activeSection === "municipality" && renderMunicipalidadPanel()}
+              {activeSection === "government" && renderGovernmentPanel()}
               {canAccessSectionByRole(getAuthToken(), "all" as AppSection) && activeSection === "all" && renderAllPanel()}
             </main>
           )

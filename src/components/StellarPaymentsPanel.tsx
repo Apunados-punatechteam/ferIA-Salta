@@ -389,7 +389,7 @@ export function StellarPaymentsPanel(props: {
 
               <dt>Cobra</dt>
               <dd>
-                {activePayment.payeeRole ?? "MUNICIPALITY"}
+                {activePayment.payeeRole ?? "GOVERNMENT"}
                 {activePayment.payeeName ? ` · ${activePayment.payeeName}` : ""}
               </dd>
 

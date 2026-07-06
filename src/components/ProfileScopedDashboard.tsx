@@ -2,7 +2,7 @@ import type { LocalArkivEntity } from "../types/feria";
 import { CertificatesExplorerPanel } from "./CertificatesExplorerPanel";
 import { SafeTabs } from "./SafeTabs";
 
-type DashboardMode = "entrepreneur" | "fair_organizer" | "municipality";
+type DashboardMode = "entrepreneur" | "fair_organizer" | "government";
 
 type JwtPayload = {
   sub?: string;
@@ -382,14 +382,14 @@ export function ProfileScopedDashboard({
         <div className="panel span-2-panel">
           <div className="panel-header">
             <div>
-              <p className="eyebrow">Municipalidad</p>
+              <p className="eyebrow">Gobierno de la Provincia de Salta</p>
               <h2>Decisiones sobre mis ferias</h2>
             </div>
             <span className="status-pill">{myOrganizerDecisions.length} decisiones</span>
           </div>
 
           {myOrganizerDecisions.length === 0 ? (
-            <p className="empty-state">Todavia no hay decisiones municipales sobre tus ferias.</p>
+            <p className="empty-state">Todavia no hay decisiones del gobierno sobre tus ferias.</p>
           ) : (
             <div className="profile-mini-list profile-mini-list--grid">
               {myOrganizerDecisions.map((entity) => {
@@ -413,7 +413,7 @@ export function ProfileScopedDashboard({
       <div className="panel span-2-panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">Municipalidad</p>
+            <p className="eyebrow">Gobierno de la Provincia de Salta</p>
             <h2>Vista total del sistema</h2>
           </div>
           <span className="status-pill">vista completa</span>
@@ -505,7 +505,7 @@ export function ProfileScopedDashboard({
           entities={entities}
           showAll
           title="Certificados emitidos"
-          subtitle="Vista municipal completa de certificados emitidos."
+          subtitle="Vista del gobierno completa de certificados emitidos."
         />
       </div>
     </section>

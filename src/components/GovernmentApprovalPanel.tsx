@@ -82,7 +82,7 @@ function isPendingStatus(status: unknown): boolean {
   return normalized === "pending" || normalized === "pendiente" || normalized === "pendientes";
 }
 
-export function MunicipalityApprovalPanel({
+export function GovernmentApprovalPanel({
   token,
   entities,
   onDecisionCreated,
@@ -139,8 +139,8 @@ export function MunicipalityApprovalPanel({
     const notes =
       notesByFairKey[fairKey]?.trim() ||
       (decision === "approved"
-        ? "Aprobado por la municipalidad."
-        : "Rechazado por la municipalidad.");
+        ? "Aprobado por el gobierno."
+        : "Rechazado por el gobierno.");
 
     setProcessingFairKey(fairKey);
     setErrorMessage("");
@@ -162,7 +162,7 @@ export function MunicipalityApprovalPanel({
       const message =
         error instanceof Error
           ? error.message
-          : "No se pudo registrar la decision municipal.";
+          : "No se pudo registrar la decision del gobierno.";
 
       setErrorMessage(message);
     } finally {
@@ -184,8 +184,8 @@ export function MunicipalityApprovalPanel({
       : null;
 
     return (
-      <article className="municipality-fair-card" key={item.entity.entityKey}>
-        <div className="municipality-fair-card__top">
+      <article className="government-fair-card" key={item.entity.entityKey}>
+        <div className="government-fair-card__top">
           <span
             className={
               mode === "approved"
@@ -209,7 +209,7 @@ export function MunicipalityApprovalPanel({
 
         <p>{item.payload.description ?? "Sin descripcion"}</p>
 
-        <div className="municipality-fair-card__meta">
+        <div className="government-fair-card__meta">
           <div>
             <span>Direccion</span>
             <strong>{item.payload.address ?? "-"}</strong>
@@ -233,7 +233,7 @@ export function MunicipalityApprovalPanel({
         {mode === "pending" ? (
           <div className="decision-box">
             <label>
-              Observacion municipal
+              Observacion del gobierno
               <textarea
                 value={notesByFairKey[item.entity.entityKey] ?? ""}
                 onChange={(event) =>
@@ -280,8 +280,8 @@ export function MunicipalityApprovalPanel({
 
   return (
     <SafeTabs
-      title="Gestion de ferias municipales"
-      subtitle="Aproba, rechaza y revisa el historial municipal sin perder contexto."
+      title="Gestion de ferias del gobierno"
+      subtitle="Aproba, rechaza y revisa el historial del gobierno sin perder contexto."
       tabs={[
         {
           id: "pendientes",
@@ -292,7 +292,7 @@ export function MunicipalityApprovalPanel({
               <div className="panel">
                 <div className="panel-header">
                   <div>
-                    <p className="eyebrow">Municipalidad</p>
+                    <p className="eyebrow">Gobierno de la Provincia de Salta</p>
                     <h2>Ferias pendientes</h2>
                   </div>
                   <span className="status-pill">{pendingFairs.length} pendientes</span>
@@ -305,7 +305,7 @@ export function MunicipalityApprovalPanel({
                     No hay ferias pendientes. Sincroniza desde backend o crea una feria como feriante.
                   </p>
                 ) : (
-                  <div className="municipality-fair-list">
+                  <div className="government-fair-list">
                     {pendingFairs.map((item) => renderFairCard(item, "pending"))}
                   </div>
                 )}
@@ -322,7 +322,7 @@ export function MunicipalityApprovalPanel({
               <div className="panel">
                 <div className="panel-header">
                   <div>
-                    <p className="eyebrow">Historial municipal</p>
+                    <p className="eyebrow">Historial del gobierno</p>
                     <h2>Ferias aprobadas</h2>
                   </div>
                   <span className="status-pill">{approvedFairs.length} aprobadas</span>
@@ -331,7 +331,7 @@ export function MunicipalityApprovalPanel({
                 {approvedFairs.length === 0 ? (
                   <p className="empty-state">Todavia no hay ferias aprobadas.</p>
                 ) : (
-                  <div className="municipality-fair-list">
+                  <div className="government-fair-list">
                     {approvedFairs.map((item) => renderFairCard(item, "approved"))}
                   </div>
                 )}
@@ -348,7 +348,7 @@ export function MunicipalityApprovalPanel({
               <div className="panel">
                 <div className="panel-header">
                   <div>
-                    <p className="eyebrow">Historial municipal</p>
+                    <p className="eyebrow">Historial del gobierno</p>
                     <h2>Ferias rechazadas</h2>
                   </div>
                   <span className="status-pill">{rejectedFairs.length} rechazadas</span>
@@ -357,7 +357,7 @@ export function MunicipalityApprovalPanel({
                 {rejectedFairs.length === 0 ? (
                   <p className="empty-state">Todavia no hay ferias rechazadas.</p>
                 ) : (
-                  <div className="municipality-fair-list">
+                  <div className="government-fair-list">
                     {rejectedFairs.map((item) => renderFairCard(item, "rejected"))}
                   </div>
                 )}

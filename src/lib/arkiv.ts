@@ -17,7 +17,7 @@ export const ENTITY_TYPES = {
   USER_PROFILE: "user_profile",
   FAIR_EVENT: "fair_event",
   FAIR_REGISTRATION: "fair_registration",
-  MUNICIPALITY_DECISION: "municipality_decision",
+  GOVERNMENT_DECISION: "government_decision",
 } as const;
 
 export const EXPIRATION_SECONDS = {
@@ -29,7 +29,7 @@ export const EXPIRATION_SECONDS = {
   USER_PROFILE: 60 * 60 * 24 * 180,
   FAIR_EVENT: 60 * 60 * 24 * 120,
   FAIR_REGISTRATION: 60 * 60 * 24 * 90,
-  MUNICIPALITY_DECISION: 60 * 60 * 24 * 365,
+  GOVERNMENT_DECISION: 60 * 60 * 24 * 365,
 } as const;
 
 export const arkivPublicClient = createPublicClient({
