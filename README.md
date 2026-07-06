@@ -1,6 +1,6 @@
 # 🎪 FerIA v3 · Ferias + IA + Web3
 
-> Sistema integral para emprendedores, organizadores y administración municipal
+> Sistema integral para emprendedores, organizadores y el gobierno provincial
 
 🚀 **Características principales:**
 - ✨ Perfil de emprendedor con imágenes y productos
@@ -114,4 +114,4 @@ usuarios
 perfiles de emprendedores
 ferias
 inscripciones
-Durante desarrollo, si no se configura ARKIV_PRIVATE_KEY, el sistema sigue funcionando con PostgreSQL y marca Arkiv como omitido. Para hackathon/demo con Braga, cargar una wallet con GLM del faucet.
+Durante desarrollo, si no se configura ARKIV_PRIVATE_KEY, el sistema sigue funcionando con PostgreSQL y marca Arkiv como omitido. Para publicar en producción con Braga, cargar una wallet con GLM del faucet.

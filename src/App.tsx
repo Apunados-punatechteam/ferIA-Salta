@@ -295,7 +295,7 @@ function LoginScreen({
     <div className="login-section">
       <section className="login-card">
           <div>
-            <p className="eyebrow">PunaTech Hackathon - Arkiv Track</p>
+            <p className="eyebrow">Gobierno de la Provincia de Salta</p>
             <h1>FerIA</h1>
             <p className="hero-subtitle">
               Flujo productivo para feriantes, emprendedores y el gobierno provincial.
@@ -564,7 +564,7 @@ const [errorMessage, setErrorMessage] = useState("");
     return (
       <header className="hero">
         <div>
-          <p className="eyebrow">PunaTech Hackathon - Arkiv Track</p>
+          <p className="eyebrow">Gobierno de la Provincia de Salta</p>
           <h1>FerIA</h1>
           <p className="hero-subtitle">
             Flujo productivo con login real, backend seguro y datos verificables

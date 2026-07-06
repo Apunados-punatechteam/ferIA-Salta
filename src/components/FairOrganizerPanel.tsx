@@ -21,7 +21,7 @@ type OrganizerFairForm = {
 
 const initialForm: OrganizerFairForm = {
   name: "Feria Emprende Salta",
-  description: "Feria creada por un feriante y enviada a aprobación municipal.",
+  description: "Feria creada por un feriante y enviada a aprobación del gobierno.",
   address: "Plaza 9 de Julio, Salta",
   city: "Salta",
   category: "artesanias",
@@ -111,7 +111,7 @@ export function FairOrganizerPanel({
     }
 
     if (!isOptionalValidStellarPublicKey(form.municipalityReceiverPublicKey)) {
-      alert("La wallet de municipalidad debe ser una public key Stellar válida que empieza con G.");
+      alert("La wallet del gobierno debe ser una public key Stellar válida que empieza con G.");
       return;
     }
 
@@ -156,14 +156,14 @@ export function FairOrganizerPanel({
         <div className="panel-header">
           <div>
             <p className="eyebrow">Feriante</p>
-            <h2>Crear feria para aprobación municipal</h2>
+            <h2>Crear feria para aprobación del gobierno</h2>
           </div>
           <span className="status-pill">Mapa editable</span>
         </div>
 
         <p className="empty-state">
           Cargá los datos de la feria, definí el monto de inscripción y la wallet
-          Stellar que cobrará. La municipalidad debe aprobar la feria antes de que
+          Stellar que cobrará. El gobierno debe aprobar la feria antes de que
           quede disponible para emprendedores.
         </p>
 
@@ -297,7 +297,7 @@ export function FairOrganizerPanel({
                   paymentReceiverPublicKey: event.target.value,
                 }))
               }
-              placeholder="G... wallet del feriante. Si se deja vacío, cobra municipalidad."
+              placeholder="G... wallet del feriante. Si se deja vacío, cobra el gobierno."
             />
           </label>
 
@@ -316,7 +316,7 @@ export function FairOrganizerPanel({
           </label>
 
           <label className="span-2">
-            Wallet Stellar municipalidad
+            Wallet Stellar del gobierno
             <input
               value={form.municipalityReceiverPublicKey}
               onChange={(event) =>
@@ -325,7 +325,7 @@ export function FairOrganizerPanel({
                   municipalityReceiverPublicKey: event.target.value,
                 }))
               }
-              placeholder="G... wallet de municipalidad"
+              placeholder="G... wallet del gobierno"
             />
           </label>
 
@@ -396,7 +396,7 @@ export function FairOrganizerPanel({
             </div>
 
             <p className="empty-state">
-              Estado inicial: pending. La municipalidad debe aprobar la feria
+              Estado inicial: pending. El gobierno debe aprobar la feria
               antes de que aparezca como feria disponible para emprendedores.
             </p>
           </div>

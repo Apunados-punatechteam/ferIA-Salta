@@ -13,9 +13,9 @@ import { FairsMap } from "./FairsMap";
 const SPONSORS = [
   {
     id: "muni",
-    name: "Municipalidad de Salta",
-    category: "Gobierno Municipal",
-    description: "Apoyo institucional al emprendedorismo local y gestión de ferias urbanas.",
+    name: "Gobierno de la Provincia de Salta",
+    category: "Gobierno Provincial",
+    description: "Apoyo institucional al emprendedorismo local y gestión de ferias en toda la provincia.",
     icon: "🏛️",
   },
   {
@@ -490,7 +490,7 @@ export function PublicLandingPage() {
             })}
           </nav>
           <p className="lv2-footer__copy">
-            © 2025 FerIA · PunaTech Hackathon · Arkiv Track
+            © 2025 FerIA · Gobierno de la Provincia de Salta
           </p>
         </div>
       </footer>
