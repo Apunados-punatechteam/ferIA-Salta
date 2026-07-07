@@ -14,6 +14,7 @@ import { fairRegistrationsRoutes } from "./routes/fairRegistrations.routes.js";
 import { registerRoutes } from "./routes/register.routes.js";
 import { stellarPaymentsRoutes } from "./routes/stellarPayments.routes.js";
 import { publicFairsRoutes } from "./routes/publicFairs.routes.js";
+import { contactRoutes } from "./routes/contact.routes.js";
 
 const app = Fastify({
   logger: true,
@@ -73,6 +74,7 @@ await app.register(fairsRoutes, { prefix: "/api" });
 await app.register(fairRegistrationsRoutes, { prefix: "/api" });
 await app.register(stellarPaymentsRoutes, { prefix: "/api" });
 await app.register(publicFairsRoutes, { prefix: "/api" });
+await app.register(contactRoutes, { prefix: "/api" });
 
 const port = Number(process.env.PORT ?? 4100);
 const host = process.env.HOST ?? "0.0.0.0";
