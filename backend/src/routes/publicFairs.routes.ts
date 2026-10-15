@@ -1,5 +1,8 @@
 ﻿import type { FastifyInstance } from "fastify";
+import { PrismaClient } from "@prisma/client";
 import { getProjectEntitiesCached } from "../arkivCache.js";
+
+const prisma = new PrismaClient();
 
 type ArkivAttribute = {
   key?: string;
@@ -265,6 +268,42 @@ function buildFair(entity: ArkivEntity, registrations: ArkivEntity[]): PublicFai
   };
 }
 
+type DbFairRow = {
+  id: string;
+  nombre: string;
+  descripcion: string | null;
+  fecha: Date | null;
+  lugar: string;
+  puestos: number;
+  status: string;
+};
+
+// Fallback para desarrollo local: si Arkiv no responde, se leen las ferias aprobadas de Postgres.
+async function getFairsFromDatabase(): Promise<PublicFair[]> {
+  const rows = await prisma.$queryRaw<DbFairRow[]>`
+    SELECT id, nombre, descripcion, fecha, lugar, puestos, status::text AS status
+    FROM "Feria"
+    WHERE status::text = 'aprobada'
+    ORDER BY nombre
+  `;
+
+  return rows.map((row) => ({
+    fairKey: row.id,
+    fairName: row.nombre,
+    description: row.descripcion ?? "",
+    locationName: row.lugar,
+    address: "",
+    dateLabel: row.fecha ? row.fecha.toISOString().slice(0, 10) : "",
+    latitude: null,
+    longitude: null,
+    approved: true,
+    availableSlots: null,
+    totalSlots: row.puestos > 0 ? row.puestos : null,
+    registeredCount: 0,
+    entrepreneurs: [],
+  }));
+}
+
 export async function publicFairsRoutes(app: FastifyInstance) {
   app.get("/public/fairs/approved", async (request, reply) => {
     try {
@@ -275,10 +314,22 @@ export async function publicFairsRoutes(app: FastifyInstance) {
       const fairs = rawEntities.filter(isApprovedFair);
       const registrations = rawEntities.filter(isRegistrationEntity);
 
-      const result = fairs
+      let result = fairs
         .map((fair) => buildFair(fair, registrations))
         .filter((fair) => fair.fairKey)
         .sort((a, b) => a.fairName.localeCompare(b.fairName, "es"));
+
+      if (result.length === 0 && cached.source === "empty") {
+        result = await getFairsFromDatabase();
+        if (result.length > 0) {
+          return {
+            ok: true,
+            source: "database",
+            warning: cached.warning ?? null,
+            fairs: result,
+          };
+        }
+      }
 
       if (cached.warning) {
         request.log.warn(
