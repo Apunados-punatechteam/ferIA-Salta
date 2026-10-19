@@ -8,10 +8,10 @@ import {
   createFairCertificate,
   createFairRegistration,
   createFairRegistrationCancellation,
-} from "../arkivService.js";
-import { getProjectEntitiesCached, invalidateProjectEntitiesCache } from "../arkivCache.js";
+  listEntities,
+} from "../entityStore.js";
 
-type ArkivEntity = Record<string, unknown>;
+type EntityRecord = Record<string, unknown>;
 
 type FairPayload = {
   name?: string;
@@ -45,7 +45,7 @@ const CancelRegistrationSchema = z.object({
 
 const fairLocks = new Map<string, Promise<void>>();
 
-function getEntityType(entity: ArkivEntity): string {
+function getEntityType(entity: EntityRecord): string {
   const attrs = Array.isArray(entity.attributes) ? entity.attributes : [];
 
   for (const attr of attrs) {
@@ -60,7 +60,7 @@ function getEntityType(entity: ArkivEntity): string {
   return "unknown";
 }
 
-function getPayload<TPayload>(entity: ArkivEntity): TPayload {
+function getPayload<TPayload>(entity: EntityRecord): TPayload {
   if (entity.payload && typeof entity.payload === "object") {
     return entity.payload as TPayload;
   }
@@ -68,11 +68,11 @@ function getPayload<TPayload>(entity: ArkivEntity): TPayload {
   return {} as TPayload;
 }
 
-function getEntityKey(entity: ArkivEntity): string {
+function getEntityKey(entity: EntityRecord): string {
   return String(entity.entityKey ?? entity.key ?? entity.id ?? "");
 }
 
-function getLatestDecisionByFairKey(entities: ArkivEntity[]) {
+function getLatestDecisionByFairKey(entities: EntityRecord[]) {
   const decisions = entities
     .filter((entity) => getEntityType(entity) === "fair_event_decision")
     .map((entity) => {
@@ -98,7 +98,7 @@ function getLatestDecisionByFairKey(entities: ArkivEntity[]) {
   return map;
 }
 
-function getCancellationSet(entities: ArkivEntity[]) {
+function getCancellationSet(entities: EntityRecord[]) {
   const set = new Set<string>();
 
   for (const entity of entities) {
@@ -115,7 +115,7 @@ function getCancellationSet(entities: ArkivEntity[]) {
   return set;
 }
 
-function getActiveRegistrationsForFair(entities: ArkivEntity[], fairKey: string) {
+function getActiveRegistrationsForFair(entities: EntityRecord[], fairKey: string) {
   const cancelled = getCancellationSet(entities);
 
   return entities.filter((entity) => {
@@ -132,7 +132,7 @@ function getActiveRegistrationsForFair(entities: ArkivEntity[], fairKey: string)
   });
 }
 
-function findApprovedFair(entities: ArkivEntity[], fairKey: string) {
+function findApprovedFair(entities: EntityRecord[], fairKey: string) {
   const fair = entities.find(
     (entity) =>
       getEntityType(entity) === "fair_event" && getEntityKey(entity) === fairKey
@@ -149,7 +149,7 @@ function findApprovedFair(entities: ArkivEntity[], fairKey: string) {
   return fair;
 }
 
-function getRemainingSlots(entities: ArkivEntity[], fairKey: string, fair: ArkivEntity) {
+function getRemainingSlots(entities: EntityRecord[], fairKey: string, fair: EntityRecord) {
   const payload = getPayload<FairPayload>(fair);
   const totalSlots = Number(payload.availableSlots ?? 0);
   const activeCount = getActiveRegistrationsForFair(entities, fairKey).length;
@@ -283,15 +283,7 @@ export async function fairRegistrationsRoutes(app: FastifyInstance) {
       }
 
       return withFairLock(fairKey, async () => {
-        const cachedEntities = await getProjectEntitiesCached();
-        const entities = cachedEntities.entities as ArkivEntity[];
-
-        if (!Array.isArray(entities) || entities.length === 0) {
-          return reply.code(503).send({
-            ok: false,
-            error: "No se pudieron cargar las ferias aprobadas en este momento. Intentá nuevamente en unos segundos.",
-          });
-        }
+        const entities = (await listEntities()) as unknown as EntityRecord[];
 
         const fair = findApprovedFair(entities, fairKey);
 
@@ -338,8 +330,6 @@ export async function fairRegistrationsRoutes(app: FastifyInstance) {
       businessName: String(fields.businessName ?? entrepreneurName),
     });
 
-    invalidateProjectEntitiesCache();
-
     return {
       ok: true,
       registration,
@@ -381,8 +371,6 @@ export async function fairRegistrationsRoutes(app: FastifyInstance) {
       cancelledByName: jwtUser.fullName ?? jwtUser.username,
       cancelledByDocument: jwtUser.document ?? jwtUser.sub,
     });
-
-    invalidateProjectEntitiesCache();
 
     return {
       ok: true,

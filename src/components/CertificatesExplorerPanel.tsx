@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
-import type { LocalArkivEntity } from "../types/feria";
+import type { EntityRecord } from "../types/feria";
 
 type CertificatePayload = {
   certificateNumber?: string;
@@ -12,15 +12,14 @@ type CertificatePayload = {
   businessName?: string;
   status?: string;
   issuedAt?: number;
-  txHash?: string;
 };
 
-function getEntityType(entity: LocalArkivEntity<unknown>): string {
+function getEntityType(entity: EntityRecord<unknown>): string {
   const attr = entity.attributes.find((item) => item.key === "entityType");
   return String(attr?.value ?? "unknown");
 }
 
-function getPayload<TPayload>(entity: LocalArkivEntity<unknown>): TPayload {
+function getPayload<TPayload>(entity: EntityRecord<unknown>): TPayload {
   if (entity.payload && typeof entity.payload === "object") {
     return entity.payload as TPayload;
   }
@@ -50,7 +49,7 @@ export function CertificatesExplorerPanel({
   subtitle = "Listado completo de certificados verificables.",
   showAll = false,
 }: {
-  entities: LocalArkivEntity<unknown>[];
+  entities: EntityRecord<unknown>[];
   entrepreneurDocument?: string;
   title?: string;
   subtitle?: string;
@@ -91,8 +90,7 @@ export function CertificatesExplorerPanel({
     fairKey: selectedPayload?.fairKey ?? "",
     registrationKey: selectedPayload?.registrationKey ?? "",
     certificateKey: selectedCertificate?.entityKey ?? "",
-    txHash: selectedPayload?.txHash ?? "",
-    verifier: "FerIA - Arkiv",
+    verifier: "FerIA",
   });
 
   return (
@@ -176,23 +174,17 @@ export function CertificatesExplorerPanel({
                   </div>
 
                   <div className="span-full">
-                    <span>Entidad certificado Arkiv</span>
+                    <span>Certificado</span>
                     <strong>{selectedCertificate.entityKey}</strong>
                   </div>
 
                   {selectedPayload.registrationKey && (
                     <div className="span-full">
-                      <span>Registro Arkiv</span>
+                      <span>Registro</span>
                       <strong>{selectedPayload.registrationKey}</strong>
                     </div>
                   )}
 
-                  {selectedPayload.txHash && (
-                    <div className="span-full">
-                      <span>Tx hash</span>
-                      <strong>{selectedPayload.txHash}</strong>
-                    </div>
-                  )}
                 </div>
               </div>
 

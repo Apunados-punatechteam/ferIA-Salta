@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { SafeTabs } from "./SafeTabs";
 import { backendCreateFairDecision } from "../services/backendApi";
-import type { LocalArkivEntity } from "../types/feria";
+import type { EntityRecord } from "../types/feria";
 
 type DecisionValue = "approved" | "rejected";
 
@@ -27,12 +27,12 @@ type DecisionPayload = {
   decidedAt?: number;
 };
 
-function getEntityType(entity: LocalArkivEntity<unknown>): string {
+function getEntityType(entity: EntityRecord<unknown>): string {
   const attr = entity.attributes.find((item) => item.key === "entityType");
   return String(attr?.value ?? "unknown");
 }
 
-function getPayload<TPayload>(entity: LocalArkivEntity<unknown>): TPayload {
+function getPayload<TPayload>(entity: EntityRecord<unknown>): TPayload {
   if (entity.payload && typeof entity.payload === "object") {
     return entity.payload as TPayload;
   }
@@ -49,7 +49,7 @@ function formatDate(timestamp?: number): string {
   }).format(new Date(timestamp));
 }
 
-function buildLatestDecisionMap(entities: LocalArkivEntity<unknown>[]) {
+function buildLatestDecisionMap(entities: EntityRecord<unknown>[]) {
   const decisions = entities
     .filter((entity) => getEntityType(entity) === "fair_event_decision")
     .map((entity) => {
@@ -88,7 +88,7 @@ export function GovernmentApprovalPanel({
   onDecisionCreated,
 }: {
   token: string | null;
-  entities: LocalArkivEntity<unknown>[];
+  entities: EntityRecord<unknown>[];
   onDecisionCreated: () => Promise<void> | void;
 }) {
   const [notesByFairKey, setNotesByFairKey] = useState<Record<string, string>>({});
@@ -126,7 +126,7 @@ export function GovernmentApprovalPanel({
   });
 
   async function decideFair(
-    entity: LocalArkivEntity<unknown>,
+    entity: EntityRecord<unknown>,
     payload: FairEventPayload,
     decision: DecisionValue
   ) {
@@ -172,7 +172,7 @@ export function GovernmentApprovalPanel({
 
   function renderFairCard(
     item: {
-      entity: LocalArkivEntity<unknown>;
+      entity: EntityRecord<unknown>;
       payload: FairEventPayload;
     },
     mode: "pending" | "approved" | "rejected"
@@ -267,7 +267,7 @@ export function GovernmentApprovalPanel({
           </div>
         ) : (
           <div className="decision-summary">
-            <span>Decision guardada en Arkiv</span>
+            <span>Decision registrada</span>
             <strong>
               {decisionPayload?.decision === "approved" ? "Aprobada" : "Rechazada"}
             </strong>

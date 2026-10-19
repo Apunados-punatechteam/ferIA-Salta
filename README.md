@@ -1,4 +1,4 @@
-# 🎪 FerIA v3 · Ferias + IA + Web3
+# 🎪 FerIA v3 · Ferias + IA
 
 > Sistema integral para emprendedores, organizadores y el gobierno provincial
 
@@ -6,8 +6,6 @@
 - ✨ Perfil de emprendedor con imágenes y productos
 - 📊 Inscripción a ferias con PostgreSQL
 - 🤖 IA con Gemini
-- 🔗 Trazabilidad blockchain con Arkiv
-- 💰 Pagos con Stellar testnet
 - 🐳 Containerizado con Docker
 
 ---
@@ -20,8 +18,6 @@
 | **Mis ferias / Inscripciones** | Guardado en PostgreSQL, refresco automático, sin duplicados (emprendedor + feria) |
 | **IA** | Migración de Claude a Gemini con @google/genai |
 | **Base de datos** | Prisma ORM + PostgreSQL, migraciones y seeder |
-| **Arkiv Braga** | Publicación on-chain de entidades verificables |
-| **Stellar** | PaymentIntent por inscripción con memo único |
 | **Docker** | Compose file + Dockerfiles + Nginx proxy |
 
 ---
@@ -32,7 +28,7 @@ feria-arkiv/
 │   ├── prisma/              # Esquema y migraciones de DB
 │   ├── src/
 │   │   ├── routes/          # Endpoints Fastify
-│   │   ├── services/        # Lógica de negocio (Arkiv, Stellar, Gemini)
+│   │   ├── services/        # Lógica de negocio (Gemini)
 │   │   └── server.ts        # Punto de entrada del backend
 │   └── uploads/             # Almacenamiento de imágenes
 ├── src/                     # Frontend (Vite + React + TS)
@@ -51,11 +47,6 @@ Completar como mínimo:
 
 DATABASE_URL=postgresql://feria:feria123@localhost:5432/feria_db?schema=public
 GEMINI_API_KEY=tu_api_key_de_gemini
-STELLAR_PUBLIC_KEY=wallet_destino_stellar_testnet
-Para publicar en Arkiv Braga:
-
-ARKIV_PRIVATE_KEY=0xTU_CLAVE_PRIVADA_AQUI
-ARKIV_RPC_URL=https://braga.hoodi.arkiv.network/rpc
 Ejecución con Docker
 cp backend/.env.example backend/.env
 # editar backend/.env
@@ -96,22 +87,13 @@ Admin: local-admin-demo
 Emprendedor: local-emprendedor-demo
 En el login se usa la entityKey como clave de acceso.
 
-Uso de Stellar en el proyecto
-El caso de uso elegido es Pagos y remesas / micropagos programáticos. Cuando un emprendedor se inscribe, el backend crea un PaymentIntent con:
+## Datos
+Las ferias, aprobaciones, inscripciones y certificados se guardan en la tabla `feria_entities` de PostgreSQL.
+Para cargar datos de demostración (ferias aprobadas, emprendedores inscriptos y certificados):
 
-red: testnet/public según .env
-destino: STELLAR_PUBLIC_KEY
-asset: XLM por defecto
-monto: costo del stand
-memo único: FERIA-...
-<img width="1600" height="761" alt="WhatsApp Image 2026-05-30 at 02 01 06" src="https://github.com/user-attachments/assets/a12bea62-1c75-473e-841c-a5d7e25724ac" />
-La firma del pago queda del lado de la wallet del usuario. El backend conserva el memo para conciliación y permite guardar el hash de transacción con /api/payments/:paymentId/confirm.
+```
+cd backend
+npm run seed:demo
+```
 
-Uso de Arkiv en el proyecto
-El caso de uso elegido es Trazabilidad y credenciales verificables. Se publican entidades para:
-
-usuarios
-perfiles de emprendedores
-ferias
-inscripciones
-Durante desarrollo, si no se configura ARKIV_PRIVATE_KEY, el sistema sigue funcionando con PostgreSQL y marca Arkiv como omitido. Para publicar en producción con Braga, cargar una wallet con GLM del faucet.
+El script se puede volver a ejecutar: reemplaza solo los datos que él mismo creó.

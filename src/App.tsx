@@ -8,16 +8,15 @@ import { GovernmentApprovalPanel } from "./components/GovernmentApprovalPanel";
 import { GovernmentRegistrationsPanel } from "./components/GovernmentRegistrationsPanel";
 import { ProfileScopedDashboard } from "./components/ProfileScopedDashboard";
 import { EntrepreneurRegistrationPanel } from "./components/EntrepreneurRegistrationPanel";
-import { StellarPaymentsPanel } from "./components/StellarPaymentsPanel";
 import { PublicLandingPage } from "./components/PublicLandingPage";
 import {
-  backendListArkivEntities,
+  backendListEntities,
   backendLogin,
   clearAuthToken,
   getAuthToken,
   storeAuthToken,
 } from "./services/backendApi";
-import type { AuthUser, LocalArkivEntity, UserRole } from "./types/feria";
+import type { AuthUser, EntityRecord, UserRole } from "./types/feria";
 const defaultUiOptionsForLegacyPatch = { silent: false };
 const options = defaultUiOptionsForLegacyPatch;
 
@@ -57,12 +56,12 @@ function getCurrentUserFromToken(token: string | null): {
   }
 }
 
-function getEntityAttributeValue(entity: LocalArkivEntity<unknown>, key: string): string {
+function getEntityAttributeValue(entity: EntityRecord<unknown>, key: string): string {
   const attr = entity.attributes.find((item) => item.key === key);
   return String(attr?.value ?? "");
 }
 
-function getEntityPayloadObject(entity: LocalArkivEntity<unknown>): Record<string, unknown> {
+function getEntityPayloadObject(entity: EntityRecord<unknown>): Record<string, unknown> {
   if (entity.payload && typeof entity.payload === "object") {
     return entity.payload as Record<string, unknown>;
   }
@@ -71,10 +70,10 @@ function getEntityPayloadObject(entity: LocalArkivEntity<unknown>): Record<strin
 }
 
 function getScopedMetricEntities(
-  entities: LocalArkivEntity<unknown>[],
+  entities: EntityRecord<unknown>[],
   token: string | null,
   activeSection: AppSection
-): LocalArkivEntity<unknown>[] {
+): EntityRecord<unknown>[] {
   const user = getCurrentUserFromToken(token);
   const role = String(user.role ?? "").toUpperCase();
   const document = String(user.document ?? "");
@@ -184,12 +183,12 @@ function formatDate(timestamp: number): string {
   }).format(new Date(timestamp));
 }
 
-function getEntityType(entity: LocalArkivEntity<unknown>): string {
+function getEntityType(entity: EntityRecord<unknown>): string {
   const attr = entity.attributes.find((item) => item.key === "entityType");
   return String(attr?.value ?? "unknown");
 }
 
-function getPayloadObject(entity: LocalArkivEntity<unknown>): Record<string, unknown> {
+function getPayloadObject(entity: EntityRecord<unknown>): Record<string, unknown> {
   if (entity.payload && typeof entity.payload === "object") {
     return entity.payload as Record<string, unknown>;
   }
@@ -214,7 +213,7 @@ function entityLabel(entityType: string): string {
   return labels[entityType] ?? entityType;
 }
 
-function getLatestFairDecisionByFairKey(entities: LocalArkivEntity<unknown>[]) {
+function getLatestFairDecisionByFairKey(entities: EntityRecord<unknown>[]) {
   const latestDecisionByFeriaKey = new Map<
     string,
     { decision: string; decidedAt: number }
@@ -368,7 +367,7 @@ function LoginScreen({
   );
 }
 
-function EntityCard({ entity }: { entity: LocalArkivEntity<unknown> }) {
+function EntityCard({ entity }: { entity: EntityRecord<unknown> }) {
   const entityType = getEntityType(entity);
   const payload = getPayloadObject(entity);
 
@@ -389,7 +388,7 @@ function EntityCard({ entity }: { entity: LocalArkivEntity<unknown> }) {
         payload.category ??
         payload.documentNumber ??
         ""
-    ) || "Entidad Arkiv";
+    ) || "Entidad";
 
   return (
     <article className="entity-card">
@@ -400,8 +399,6 @@ function EntityCard({ entity }: { entity: LocalArkivEntity<unknown> }) {
 
       <h3>{title}</h3>
       <p>{subtitle}</p>
-
-      {entity.txHash && <p className="tx-line">tx: {entity.txHash}</p>}
 
       <p className="entity-key">{entity.entityKey}</p>
     </article>
@@ -442,7 +439,7 @@ function App() {
   const [activeSection, setActiveSection] = useState<AppSection>(
     getDefaultSectionForRol(initialAuthUser?.role)
   );
-  const [entities, setEntities] = useState<LocalArkivEntity<unknown>[]>([]);
+  const [entities, setEntities] = useState<EntityRecord<unknown>[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
   const [hasInitialSyncRun, setHasInitialSyncRun] = useState(false);
 const [errorMessage, setErrorMessage] = useState("");
@@ -523,14 +520,14 @@ const [errorMessage, setErrorMessage] = useState("");
         throw new Error("No hay token de sesion. Inicia sesion de nuevo.");
       }
 
-      const syncedEntities = await backendListArkivEntities(token);
+      const syncedEntities = await backendListEntities(token);
       setEntities(syncedEntities);
-      setLastSyncFuente("Backend a Arkiv");
+      setLastSyncFuente("Backend");
     } catch (error) {
       const message =
         error instanceof Error && error.message !== "Internal Server Error"
           ? error.message
-          : "No se pudo actualizar desde Arkiv en este momento. Reintenta en unos segundos.";
+          : "No se pudo actualizar los datos en este momento. Reintenta en unos segundos.";
       if (!options.silent) {
         setErrorMessage(message);
       }
@@ -567,8 +564,8 @@ const [errorMessage, setErrorMessage] = useState("");
           <p className="eyebrow">Gobierno de la Provincia de Salta</p>
           <h1>FerIA</h1>
           <p className="hero-subtitle">
-            Flujo productivo con login real, backend seguro y datos verificables
-            en Arkiv.
+            Flujo productivo con login real, backend seguro y datos guardados
+            en la base de datos.
           </p>
 
           <div className="mode-toggle">
@@ -680,12 +677,12 @@ function renderStats() {
     );
   }
 
-  function renderEntitiesPanel(title = "Entidades desde Arkiv") {
+  function renderEntitiesPanel(title = "Entidades registradas") {
     return (
       <div className="panel">
         <div className="panel-header">
           <div>
-            <p className="eyebrow">Modelo Arkiv</p>
+            <p className="eyebrow">Modelo de datos</p>
             <h2>{title}</h2>
           </div>
           <span className="status-pill">{entities.length} entities</span>
@@ -726,14 +723,6 @@ function renderStats() {
           approvedFairEntities={approvedFairEntities}
           onRegistered={handleSyncFromBackend}
         />
-        <StellarPaymentsPanel
-          token={getAuthToken()}
-          entities={entities}
-          onPaymentConfirmed={() => handleSyncFromBackend({ silent: true })}
-        />
-
-
-
         <ProfileScopedDashboard
           token={getAuthToken()}
           entities={entities}
@@ -770,8 +759,8 @@ function renderStats() {
                 <span>React llama al backend.</span>
               </div>
               <div>
-                <strong>3. Firma segura</strong>
-                <span>Backend signs and writes en Arkiv.</span>
+                <strong>3. Registro seguro</strong>
+                <span>El backend valida y guarda en la base de datos.</span>
               </div>
               <div>
                 <strong>4. Decision del gobierno</strong>
@@ -806,7 +795,7 @@ function renderStats() {
           mode="government"
         />
         <section className="grid-layout bottom-grid">
-          {renderEntitiesPanel("Auditoria completa Arkiv")}
+          {renderEntitiesPanel("Auditoria completa")}
         </section>
       </>
     );
@@ -847,7 +836,7 @@ function renderStats() {
                 <strong>{entityStats.certificates}</strong>
               </div>
               <div>
-                <span>Total Arkiv</span>
+                <span>Total entidades</span>
                 <strong>{entities.length}</strong>
               </div>
             </div>
@@ -932,7 +921,7 @@ function renderStats() {
         </section>
 
         <section className="grid-layout bottom-grid">
-          {renderEntitiesPanel("Todas las entidades Arkiv")}
+          {renderEntitiesPanel("Todas las entidades")}
         </section>
       </>
     );

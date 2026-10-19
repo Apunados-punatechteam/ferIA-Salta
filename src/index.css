@@ -2923,7 +2923,7 @@ input[type="file"] {
   overflow-y: auto;
 }
 
-/* Evitar que Arkiv empuje toda la pantalla */
+/* Evitar que entidades empuje toda la pantalla */
 .entity-card,
 .profile-mini-card,
 .certificate-row-v2 {
@@ -3057,7 +3057,7 @@ input[type="file"] {
   width: 100%;
 }
 
-/* El panel Arkiv que queda suelto no debe quedar a media pantalla */
+/* El panel entidades que queda suelto no debe quedar a media pantalla */
 .grid-layout > section:only-child,
 .bottom-grid > section:only-child,
 .grid-layout > div:only-child,
@@ -3195,7 +3195,7 @@ input[type="file"] {
   height: 230px !important;
 }
 
-/* Arkiv: si aparece debajo, que no quede media pantalla y con vacio al lado */
+/* entidades: si aparece debajo, que no quede media pantalla y con vacio al lado */
 .panel:has(.entity-list),
 .panel:has(.entities-list) {
   grid-column: 1 / -1;
@@ -3399,12 +3399,12 @@ input[type="file"] {
     grid-template-columns: 1fr;
   }
 }
-/* Bloque 3.5N.3-PROD - ocultar auditoria Arkiv tecnica en emprendedor */
+/* Bloque 3.5N.3-PROD - ocultar auditoria entidades tecnica en emprendedor */
 body:has(.safe-tabs) .panel:has(.entity-list) {
   margin-top: 18px;
 }
 
-/* La auditoria Arkiv no debe quedar como bloque principal para el usuario final emprendedor */
+/* La auditoria entidades no debe quedar como bloque principal para el usuario final emprendedor */
 .safe-tabs ~ .panel:has(.entity-list),
 .safe-tabs ~ section .panel:has(.entity-list) {
   display: none;
@@ -3629,52 +3629,6 @@ body:has(button.active) .government-audit-visible {
   .landing-empty-card,
   .landing-error-card {
     padding: 18px;
-  }
-}
-
-.stellar-payment-layout {
-  display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
-  gap: 22px;
-  align-items: start;
-  margin-top: 16px;
-}
-
-.stellar-qr-card {
-  display: grid;
-  justify-items: center;
-  gap: 12px;
-  padding: 18px;
-  border-radius: 20px;
-  background: #ffffff;
-  color: #0b1220;
-}
-
-.stellar-qr-card svg {
-  display: block;
-  width: 220px;
-  height: 220px;
-}
-
-.stellar-qr-card strong {
-  font-size: 1rem;
-  color: #0b1220;
-}
-
-.stellar-qr-card small {
-  text-align: center;
-  color: #334155;
-}
-
-.stellar-qr-card .ghost {
-  border: 1px solid rgba(15, 23, 42, 0.18);
-  background: rgba(15, 23, 42, 0.06);
-  color: #0b1220;
-}
-
-@media (max-width: 760px) {
-  .stellar-payment-layout {
-    grid-template-columns: 1fr;
   }
 }
 

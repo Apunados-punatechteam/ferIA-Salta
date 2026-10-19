@@ -234,8 +234,8 @@ export function PublicLandingPage() {
             <img src={logoSrc} alt="FerIA logo" />
           </div>
           <div className="lv2-feature-pill lv2-feature-pill--1">🗺️ Mapa interactivo</div>
-          <div className="lv2-feature-pill lv2-feature-pill--2">🔒 Blockchain Arkiv</div>
-          <div className="lv2-feature-pill lv2-feature-pill--3">💳 Pagos Stellar</div>
+          <div className="lv2-feature-pill lv2-feature-pill--2">🔒 Inscripción segura</div>
+          <div className="lv2-feature-pill lv2-feature-pill--3">📜 Certificados digitales</div>
         </div>
       </section>
 
@@ -378,9 +378,8 @@ export function PublicLandingPage() {
             </p>
             <ul className="lv2-contacto__features">
               <li>✅ Inscripción a ferias aprobadas</li>
-              <li>✅ Certificados verificables en blockchain</li>
-              <li>✅ Pagos seguros con Stellar</li>
-              <li>✅ Asistencia digital para emprendedores</li>
+              <li>✅ Certificados digitales con código QR</li>
+                    <li>✅ Asistencia digital para emprendedores</li>
             </ul>
           </div>
 

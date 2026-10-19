@@ -13,10 +13,6 @@ type OrganizerFairForm = {
   availableSlots: number;
   latitude: number;
   longitude: number;
-  registrationFeeXlm: string;
-  paymentReceiverPublicKey: string;
-  municipalityPublicationFeeXlm: string;
-  municipalityReceiverPublicKey: string;
 };
 
 const initialForm: OrganizerFairForm = {
@@ -30,24 +26,11 @@ const initialForm: OrganizerFairForm = {
   availableSlots: 25,
   latitude: -24.7883,
   longitude: -65.4106,
-  registrationFeeXlm: "10",
-  paymentReceiverPublicKey: "",
-  municipalityPublicationFeeXlm: "25",
-  municipalityReceiverPublicKey: "GBQTHR27MTSBFPGFQYQ27WRV3GE5RDKEMO23DKO6JYMOECQNRSF6GCF2",
 };
 
 function formatCoordinate(value: number): string {
   if (!Number.isFinite(value)) return "-";
   return value.toFixed(6);
-}
-
-function isOptionalValidStellarPublicKey(value: string) {
-  if (!value.trim()) return true;
-  return /^G[A-Z2-7]{55}$/.test(value.trim());
-}
-
-function isValidXlmAmount(value: string) {
-  return /^\d+(\.\d{1,7})?$/.test(value.trim().replace(",", "."));
 }
 
 export function FairOrganizerPanel({
@@ -61,7 +44,6 @@ export function FairOrganizerPanel({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastCreated, setLastCreated] = useState<{
     entityKey: string;
-    txHash?: string;
     latitude: number;
     longitude: number;
   } | null>(null);
@@ -95,47 +77,17 @@ export function FairOrganizerPanel({
       return;
     }
 
-    if (!isValidXlmAmount(form.registrationFeeXlm)) {
-      alert("Ingresá un monto válido de inscripción en XLM.");
-      return;
-    }
-
-    if (!isValidXlmAmount(form.municipalityPublicationFeeXlm)) {
-      alert("Ingresá un monto válido de publicación en XLM.");
-      return;
-    }
-
-    if (!isOptionalValidStellarPublicKey(form.paymentReceiverPublicKey)) {
-      alert("La wallet del feriante debe ser una public key Stellar válida que empieza con G.");
-      return;
-    }
-
-    if (!isOptionalValidStellarPublicKey(form.municipalityReceiverPublicKey)) {
-      alert("La wallet del gobierno debe ser una public key Stellar válida que empieza con G.");
-      return;
-    }
-
     setIsSubmitting(true);
     setErrorMessage("");
 
     try {
       const created = await backendCreateFair({
         token,
-        fair: {
-          ...form,
-          registrationFeeXlm: form.registrationFeeXlm.trim().replace(",", "."),
-          paymentReceiverPublicKey: form.paymentReceiverPublicKey.trim() || undefined,
-          municipalityPublicationFeeXlm: form.municipalityPublicationFeeXlm
-            .trim()
-            .replace(",", "."),
-          municipalityReceiverPublicKey:
-            form.municipalityReceiverPublicKey.trim() || undefined,
-        },
+        fair: form,
       });
 
       setLastCreated({
         entityKey: created.entityKey,
-        txHash: created.txHash,
         latitude: form.latitude,
         longitude: form.longitude,
       });
@@ -162,8 +114,7 @@ export function FairOrganizerPanel({
         </div>
 
         <p className="empty-state">
-          Cargá los datos de la feria, definí el monto de inscripción y la wallet
-          Stellar que cobrará. El gobierno debe aprobar la feria antes de que
+          Cargá los datos de la feria. El gobierno debe aprobarla antes de que
           quede disponible para emprendedores.
         </p>
 
@@ -273,62 +224,6 @@ export function FairOrganizerPanel({
             />
           </label>
 
-          <label>
-            Monto inscripción emprendedor (XLM)
-            <input
-              value={form.registrationFeeXlm}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  registrationFeeXlm: event.target.value,
-                }))
-              }
-              placeholder="10"
-            />
-          </label>
-
-          <label className="span-2">
-            Wallet Stellar que cobra la inscripción
-            <input
-              value={form.paymentReceiverPublicKey}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  paymentReceiverPublicKey: event.target.value,
-                }))
-              }
-              placeholder="G... wallet del feriante. Si se deja vacío, cobra el gobierno."
-            />
-          </label>
-
-          <label>
-            Monto publicación feria (XLM)
-            <input
-              value={form.municipalityPublicationFeeXlm}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  municipalityPublicationFeeXlm: event.target.value,
-                }))
-              }
-              placeholder="25"
-            />
-          </label>
-
-          <label className="span-2">
-            Wallet Stellar del gobierno
-            <input
-              value={form.municipalityReceiverPublicKey}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  municipalityReceiverPublicKey: event.target.value,
-                }))
-              }
-              placeholder="G... wallet del gobierno"
-            />
-          </label>
-
           <div className="coordinate-preview">
             <span>Latitud</span>
             <strong>{formatCoordinate(form.latitude)}</strong>
@@ -355,7 +250,7 @@ export function FairOrganizerPanel({
 
           <div className="actions span-2">
             <button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Creando..." : "Crear feria en Arkiv"}
+              {isSubmitting ? "Creando..." : "Crear feria"}
             </button>
           </div>
         </form>
@@ -380,12 +275,6 @@ export function FairOrganizerPanel({
               <strong>{lastCreated.entityKey}</strong>
             </div>
 
-            {lastCreated.txHash && (
-              <div className="result-item">
-                <span>txHash</span>
-                <strong>{lastCreated.txHash}</strong>
-              </div>
-            )}
 
             <div className="result-item">
               <span>Ubicación guardada</span>

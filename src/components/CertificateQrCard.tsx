@@ -8,7 +8,6 @@ export function CertificateQrCard({
   fairKey,
   registrationKey,
   certificateKey,
-  txHash,
   remainingSlots,
 }: {
   certificateNumber?: string;
@@ -18,7 +17,6 @@ export function CertificateQrCard({
   fairKey?: string;
   registrationKey?: string;
   certificateKey?: string;
-  txHash?: string;
   remainingSlots?: number;
 }) {
   const qrValue = JSON.stringify({
@@ -30,8 +28,7 @@ export function CertificateQrCard({
     fairKey: fairKey ?? "",
     registrationKey: registrationKey ?? "",
     certificateKey: certificateKey ?? "",
-    txHash: txHash ?? "",
-    verifier: "FerIA - Arkiv",
+    verifier: "FerIA",
   });
 
   return (
@@ -46,21 +43,15 @@ export function CertificateQrCard({
         <p>{fairName || "Feria"}</p>
 
         <div className="certificate-final-card__key">
-          <span>Registro Arkiv</span>
+          <span>Registro</span>
           <strong>{registrationKey || "-"}</strong>
         </div>
 
         <div className="certificate-final-card__key">
-          <span>Certificado Arkiv</span>
+          <span>Certificado</span>
           <strong>{certificateKey || "-"}</strong>
         </div>
 
-        {txHash && (
-          <div className="certificate-final-card__key">
-            <span>Tx hash</span>
-            <strong>{txHash}</strong>
-          </div>
-        )}
 
         <div className="certificate-final-card__key">
           <span>Cupos restantes</span>

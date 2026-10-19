@@ -1,18 +1,15 @@
 ﻿import type { FastifyInstance } from "fastify";
-import { PrismaClient } from "@prisma/client";
-import { getProjectEntitiesCached } from "../arkivCache.js";
+import { listEntities } from "../entityStore.js";
 
-const prisma = new PrismaClient();
-
-type ArkivAttribute = {
+type EntityAttribute = {
   key?: string;
   value?: unknown;
 };
 
-type ArkivEntity = {
+type EntityRecord = {
   entityKey?: string;
   payload?: unknown;
-  attributes?: ArkivAttribute[];
+  attributes?: EntityAttribute[];
 };
 
 type PublicEntrepreneur = {
@@ -41,15 +38,15 @@ type PublicFair = {
   entrepreneurs: PublicEntrepreneur[];
 };
 
-function asArkivEntities(value: unknown): ArkivEntity[] {
+function asEntities(value: unknown): EntityRecord[] {
   if (!Array.isArray(value)) return [];
 
-  return value.filter((item): item is ArkivEntity => {
+  return value.filter((item): item is EntityRecord => {
     return Boolean(item && typeof item === "object");
   });
 }
 
-function getPayloadObject(entity: ArkivEntity): Record<string, unknown> {
+function getPayloadObject(entity: EntityRecord): Record<string, unknown> {
   if (entity.payload && typeof entity.payload === "object") {
     return entity.payload as Record<string, unknown>;
   }
@@ -57,7 +54,7 @@ function getPayloadObject(entity: ArkivEntity): Record<string, unknown> {
   return {};
 }
 
-function getAttr(entity: ArkivEntity, key: string): unknown {
+function getAttr(entity: EntityRecord, key: string): unknown {
   return entity.attributes?.find((item) => item.key === key)?.value;
 }
 
@@ -106,7 +103,7 @@ function getNumber(...values: unknown[]): number | null {
   return null;
 }
 
-function getEntityType(entity: ArkivEntity): string {
+function getEntityType(entity: EntityRecord): string {
   const payload = getPayloadObject(entity);
 
   return getText(
@@ -117,7 +114,7 @@ function getEntityType(entity: ArkivEntity): string {
   ).toLowerCase();
 }
 
-function isApprovedFair(entity: ArkivEntity): boolean {
+function isApprovedFair(entity: EntityRecord): boolean {
   const payload = getPayloadObject(entity);
   const entityType = getEntityType(entity);
 
@@ -148,7 +145,7 @@ function isApprovedFair(entity: ArkivEntity): boolean {
   );
 }
 
-function isRegistrationEntity(entity: ArkivEntity): boolean {
+function isRegistrationEntity(entity: EntityRecord): boolean {
   const entityType = getEntityType(entity);
   const payload = getPayloadObject(entity);
 
@@ -159,7 +156,7 @@ function isRegistrationEntity(entity: ArkivEntity): boolean {
   );
 }
 
-function buildEntrepreneur(registration: ArkivEntity): PublicEntrepreneur {
+function buildEntrepreneur(registration: EntityRecord): PublicEntrepreneur {
   const payload = getPayloadObject(registration);
 
   return {
@@ -188,7 +185,7 @@ function buildEntrepreneur(registration: ArkivEntity): PublicEntrepreneur {
   };
 }
 
-function buildFair(entity: ArkivEntity, registrations: ArkivEntity[]): PublicFair {
+function buildFair(entity: EntityRecord, registrations: EntityRecord[]): PublicFair {
   const payload = getPayloadObject(entity);
 
   const fairKey = getText(
@@ -268,84 +265,23 @@ function buildFair(entity: ArkivEntity, registrations: ArkivEntity[]): PublicFai
   };
 }
 
-type DbFairRow = {
-  id: string;
-  nombre: string;
-  descripcion: string | null;
-  fecha: Date | null;
-  lugar: string;
-  puestos: number;
-  status: string;
-};
-
-// Fallback para desarrollo local: si Arkiv no responde, se leen las ferias aprobadas de Postgres.
-async function getFairsFromDatabase(): Promise<PublicFair[]> {
-  const rows = await prisma.$queryRaw<DbFairRow[]>`
-    SELECT id, nombre, descripcion, fecha, lugar, puestos, status::text AS status
-    FROM "Feria"
-    WHERE status::text = 'aprobada'
-    ORDER BY nombre
-  `;
-
-  return rows.map((row) => ({
-    fairKey: row.id,
-    fairName: row.nombre,
-    description: row.descripcion ?? "",
-    locationName: row.lugar,
-    address: "",
-    dateLabel: row.fecha ? row.fecha.toISOString().slice(0, 10) : "",
-    latitude: null,
-    longitude: null,
-    approved: true,
-    availableSlots: null,
-    totalSlots: row.puestos > 0 ? row.puestos : null,
-    registeredCount: 0,
-    entrepreneurs: [],
-  }));
-}
-
 export async function publicFairsRoutes(app: FastifyInstance) {
   app.get("/public/fairs/approved", async (request, reply) => {
     try {
-      const cached = await getProjectEntitiesCached();
-
-      const rawEntities = asArkivEntities(cached.entities);
+      const rawEntities = asEntities(await listEntities());
 
       const fairs = rawEntities.filter(isApprovedFair);
       const registrations = rawEntities.filter(isRegistrationEntity);
 
-      let result = fairs
+      const result = fairs
         .map((fair) => buildFair(fair, registrations))
         .filter((fair) => fair.fairKey)
         .sort((a, b) => a.fairName.localeCompare(b.fairName, "es"));
 
-      if (result.length === 0 && cached.source === "empty") {
-        result = await getFairsFromDatabase();
-        if (result.length > 0) {
-          return {
-            ok: true,
-            source: "database",
-            warning: cached.warning ?? null,
-            fairs: result,
-          };
-        }
-      }
-
-      if (cached.warning) {
-        request.log.warn(
-          {
-            warning: cached.warning,
-            source: cached.source,
-            cache: cached.cache,
-          },
-          "Public fairs served with Arkiv cache warning"
-        );
-      }
-
       return {
         ok: true,
-        source: cached.source,
-        warning: cached.warning ?? null,
+        source: "database",
+        warning: null,
         fairs: result,
       };
     } catch (error) {
