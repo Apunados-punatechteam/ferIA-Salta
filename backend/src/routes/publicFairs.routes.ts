@@ -114,46 +114,43 @@ function getEntityType(entity: EntityRecord): string {
   ).toLowerCase();
 }
 
-function isApprovedFair(entity: EntityRecord): boolean {
-  const payload = getPayloadObject(entity);
-  const entityType = getEntityType(entity);
+function getApprovedFairKeys(entities: EntityRecord[]): Set<string> {
+  const latestByFair = new Map<string, { decision: string; decidedAt: number }>();
 
-  const looksLikeFair =
-    entityType === "fair_event" ||
-    entityType === "fair" ||
-    entityType === "fairEvent" ||
-    Boolean(payload.fairName || payload.name || payload.title);
+  for (const entity of entities) {
+    if (getEntityType(entity) !== "fair_event_decision") continue;
 
-  if (!looksLikeFair) return false;
+    const payload = getPayloadObject(entity);
+    const fairKey = getText(payload.fairKey, getAttr(entity, "fairKey"));
+    const decidedAt = getNumber(payload.decidedAt) ?? 0;
+    const current = latestByFair.get(fairKey);
 
-  const approved = getBool(
-    payload.approved,
-    getAttr(entity, "approved"),
-    payload.isApproved
-  );
+    if (fairKey && (!current || decidedAt >= current.decidedAt)) {
+      latestByFair.set(fairKey, {
+        decision: getText(payload.decision, getAttr(entity, "decision")),
+        decidedAt,
+      });
+    }
+  }
 
-  const status = getText(
-    payload.status,
-    getAttr(entity, "status"),
-    payload.approvalStatus
-  ).toLowerCase();
-
-  if (approved === true) return true;
-
-  return ["approved", "aprobada", "aprobado", "published", "active", "vigente"].some(
-    (token) => status.includes(token)
+  return new Set(
+    [...latestByFair.entries()]
+      .filter(([, value]) => value.decision === "approved")
+      .map(([fairKey]) => fairKey)
   );
 }
 
-function isRegistrationEntity(entity: EntityRecord): boolean {
-  const entityType = getEntityType(entity);
-  const payload = getPayloadObject(entity);
+function getCancelledRegistrationKeys(entities: EntityRecord[]): Set<string> {
+  const keys = new Set<string>();
 
-  return (
-    entityType === "fair_registration" ||
-    entityType === "registration" ||
-    Boolean(payload.registrationKey || payload.entrepreneurName || payload.businessName)
-  );
+  for (const entity of entities) {
+    if (getEntityType(entity) !== "fair_registration_cancellation") continue;
+
+    const key = getText(getPayloadObject(entity).registrationKey);
+    if (key) keys.add(key);
+  }
+
+  return keys;
 }
 
 function buildEntrepreneur(registration: EntityRecord): PublicEntrepreneur {
@@ -208,6 +205,12 @@ function buildFair(entity: EntityRecord, registrations: EntityRecord[]): PublicF
   });
 
   const entrepreneurs = fairRegistrations.map(buildEntrepreneur);
+  const totalSlots = getNumber(
+    payload.availableSlots,
+    payload.totalSlots,
+    payload.capacity,
+    payload.slots
+  );
 
   return {
     fairKey,
@@ -251,15 +254,9 @@ function buildFair(entity: EntityRecord, registrations: EntityRecord[]): PublicF
       getAttr(entity, "lon")
     ),
     approved: true,
-    availableSlots: getNumber(
-      payload.availableSlots,
-      payload.remainingSlots
-    ),
-    totalSlots: getNumber(
-      payload.totalSlots,
-      payload.capacity,
-      payload.slots
-    ),
+    availableSlots:
+      totalSlots === null ? null : Math.max(totalSlots - entrepreneurs.length, 0),
+    totalSlots,
     registeredCount: entrepreneurs.length,
     entrepreneurs,
   };
@@ -270,8 +267,19 @@ export async function publicFairsRoutes(app: FastifyInstance) {
     try {
       const rawEntities = asEntities(await listEntities());
 
-      const fairs = rawEntities.filter(isApprovedFair);
-      const registrations = rawEntities.filter(isRegistrationEntity);
+      const approvedFairKeys = getApprovedFairKeys(rawEntities);
+      const cancelledKeys = getCancelledRegistrationKeys(rawEntities);
+
+      const fairs = rawEntities.filter(
+        (entity) =>
+          getEntityType(entity) === "fair_event" &&
+          approvedFairKeys.has(getText(entity.entityKey))
+      );
+      const registrations = rawEntities.filter(
+        (entity) =>
+          getEntityType(entity) === "fair_registration" &&
+          !cancelledKeys.has(getText(entity.entityKey))
+      );
 
       const result = fairs
         .map((fair) => buildFair(fair, registrations))
