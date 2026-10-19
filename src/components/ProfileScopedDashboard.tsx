@@ -1,4 +1,4 @@
-import type { LocalArkivEntity } from "../types/feria";
+import type { EntityRecord } from "../types/feria";
 import { CertificatesExplorerPanel } from "./CertificatesExplorerPanel";
 import { SafeTabs } from "./SafeTabs";
 
@@ -74,12 +74,12 @@ function decodeJwtPayload(token: string | null): JwtPayload {
   }
 }
 
-function getEntityType(entity: LocalArkivEntity<unknown>): string {
+function getEntityType(entity: EntityRecord<unknown>): string {
   const attr = entity.attributes.find((item) => item.key === "entityType");
   return String(attr?.value ?? "unknown");
 }
 
-function getPayload<TPayload>(entity: LocalArkivEntity<unknown>): TPayload {
+function getPayload<TPayload>(entity: EntityRecord<unknown>): TPayload {
   if (entity.payload && typeof entity.payload === "object") {
     return entity.payload as TPayload;
   }
@@ -93,7 +93,7 @@ function shortKey(value: string): string {
   return `${value.slice(0, 10)}...${value.slice(-8)}`;
 }
 
-function getLatestDecisionByFairKey(entities: LocalArkivEntity<unknown>[]) {
+function getLatestDecisionByFairKey(entities: EntityRecord<unknown>[]) {
   const decisions = entities
     .filter((entity) => getEntityType(entity) === "fair_event_decision")
     .map((entity) => {
@@ -120,7 +120,7 @@ function getLatestDecisionByFairKey(entities: LocalArkivEntity<unknown>[]) {
   return map;
 }
 
-function getCancellationSet(entities: LocalArkivEntity<unknown>[]) {
+function getCancellationSet(entities: EntityRecord<unknown>[]) {
   const set = new Set<string>();
 
   for (const entity of entities) {
@@ -137,7 +137,7 @@ function getCancellationSet(entities: LocalArkivEntity<unknown>[]) {
   return set;
 }
 
-function getApprovedFairs(entities: LocalArkivEntity<unknown>[]) {
+function getApprovedFairs(entities: EntityRecord<unknown>[]) {
   const latestDecisionByFairKey = getLatestDecisionByFairKey(entities);
 
   return entities.filter((entity) => {
@@ -149,7 +149,7 @@ function getApprovedFairs(entities: LocalArkivEntity<unknown>[]) {
 }
 
 function renderMiniEntity(
-  entity: LocalArkivEntity<unknown>,
+  entity: EntityRecord<unknown>,
   title: string,
   subtitle: string
 ) {
@@ -170,7 +170,7 @@ export function ProfileScopedDashboard({
   mode,
 }: {
   token: string | null;
-  entities: LocalArkivEntity<unknown>[];
+  entities: EntityRecord<unknown>[];
   mode: DashboardMode;
 }) {
   const user = decodeJwtPayload(token);

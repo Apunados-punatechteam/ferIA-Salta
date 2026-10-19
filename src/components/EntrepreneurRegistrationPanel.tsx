@@ -3,7 +3,7 @@ import {
   backendCreateFairRegistration,
   type BackendFairRegistrationResponse,
 } from "../services/backendApi";
-import type { LocalArkivEntity } from "../types/feria";
+import type { EntityRecord } from "../types/feria";
 import { CertificateQrCard } from "./CertificateQrCard";
 
 type FairPayload = {
@@ -24,12 +24,12 @@ type CancellationPayload = {
   registrationKey?: string;
 };
 
-function getEntityType(entity: LocalArkivEntity<unknown>): string {
+function getEntityType(entity: EntityRecord<unknown>): string {
   const attr = entity.attributes.find((item) => item.key === "entityType");
   return String(attr?.value ?? "unknown");
 }
 
-function getPayload<TPayload>(entity: LocalArkivEntity<unknown>): TPayload {
+function getPayload<TPayload>(entity: EntityRecord<unknown>): TPayload {
   if (entity.payload && typeof entity.payload === "object") {
     return entity.payload as TPayload;
   }
@@ -37,7 +37,7 @@ function getPayload<TPayload>(entity: LocalArkivEntity<unknown>): TPayload {
   return {} as TPayload;
 }
 
-function getCancellationSet(entities: LocalArkivEntity<unknown>[]) {
+function getCancellationSet(entities: EntityRecord<unknown>[]) {
   const set = new Set<string>();
 
   for (const entity of entities) {
@@ -55,7 +55,7 @@ function getCancellationSet(entities: LocalArkivEntity<unknown>[]) {
 }
 
 function getActiveRegistrationCount(
-  entities: LocalArkivEntity<unknown>[],
+  entities: EntityRecord<unknown>[],
   fairKey: string
 ) {
   const cancelled = getCancellationSet(entities);
@@ -74,8 +74,8 @@ function getActiveRegistrationCount(
 }
 
 function getRemainingSlots(
-  entities: LocalArkivEntity<unknown>[],
-  fair: LocalArkivEntity<unknown>
+  entities: EntityRecord<unknown>[],
+  fair: EntityRecord<unknown>
 ) {
   const payload = getPayload<FairPayload>(fair);
   const total = Number(payload.availableSlots ?? 0);
@@ -91,8 +91,8 @@ export function EntrepreneurRegistrationPanel({
   onRegistered,
 }: {
   token: string | null;
-  entities: LocalArkivEntity<unknown>[];
-  approvedFairEntities: LocalArkivEntity<unknown>[];
+  entities: EntityRecord<unknown>[];
+  approvedFairEntities: EntityRecord<unknown>[];
   onRegistered: () => Promise<void> | void;
 }) {
   const [selectedFairKey, setSelectedFairKey] = useState("");
@@ -337,7 +337,6 @@ export function EntrepreneurRegistrationPanel({
             fairKey={selectedFair?.entityKey}
             registrationKey={lastResult.registration.entityKey}
             certificateKey={lastResult.certificate.entityKey}
-            txHash={(lastResult.certificate as { txHash?: string }).txHash}
             remainingSlots={lastResult.remainingSlots}
           />
         )}

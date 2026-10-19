@@ -9,25 +9,6 @@ const EnvSchema = z.object({
 
   DATABASE_URL: z.string().min(1),
   JWT_SECRET: z.string().min(20),
-
-  ARKIV_PRIVATE_KEY: z.string().startsWith("0x"),
-  ARKIV_PROJECT_ATTRIBUTE_KEY: z.string().default("project"),
-  ARKIV_PROJECT_ATTRIBUTE_VALUE: z.string().min(1),
-
-  STELLAR_NETWORK: z.enum(["TESTNET", "PUBLIC"]).default("TESTNET"),
-  STELLAR_HORIZON_URL: z
-    .string()
-    .url()
-    .default("https://horizon-testnet.stellar.org"),
-
-  // Compatibilidad con lo ya implementado.
-  STELLAR_RECEIVER_PUBLIC_KEY: z.string().min(10),
-  STELLAR_FAIR_REGISTRATION_AMOUNT_XLM: z.string().default("10"),
-
-  // Nuevo modelo de cobro.
-  STELLAR_MUNICIPALITY_RECEIVER_PUBLIC_KEY: z.string().min(10),
-  STELLAR_DEFAULT_ENTREPRENEUR_REGISTRATION_AMOUNT_XLM: z.string().default("10"),
-  STELLAR_DEFAULT_FAIR_PUBLICATION_AMOUNT_XLM: z.string().default("25"),
 });
 
 export const env = EnvSchema.parse(process.env);

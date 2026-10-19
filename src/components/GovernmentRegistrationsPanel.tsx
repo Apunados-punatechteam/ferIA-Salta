@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { SafeTabs } from "./SafeTabs";
 import { backendCancelFairRegistration } from "../services/backendApi";
-import type { LocalArkivEntity } from "../types/feria";
+import type { EntityRecord } from "../types/feria";
 
 type FairPayload = {
   name?: string;
@@ -39,12 +39,12 @@ type CancellationPayload = {
   cancelledAt?: number;
 };
 
-function getEntityType(entity: LocalArkivEntity<unknown>): string {
+function getEntityType(entity: EntityRecord<unknown>): string {
   const attr = entity.attributes.find((item) => item.key === "entityType");
   return String(attr?.value ?? "unknown");
 }
 
-function getPayload<TPayload>(entity: LocalArkivEntity<unknown>): TPayload {
+function getPayload<TPayload>(entity: EntityRecord<unknown>): TPayload {
   if (entity.payload && typeof entity.payload === "object") {
     return entity.payload as TPayload;
   }
@@ -61,7 +61,7 @@ function formatDate(timestamp?: number): string {
   }).format(new Date(timestamp));
 }
 
-function getLatestDecisionByFairKey(entities: LocalArkivEntity<unknown>[]) {
+function getLatestDecisionByFairKey(entities: EntityRecord<unknown>[]) {
   const decisions = entities
     .filter((entity) => getEntityType(entity) === "fair_event_decision")
     .map((entity) => {
@@ -87,7 +87,7 @@ function getLatestDecisionByFairKey(entities: LocalArkivEntity<unknown>[]) {
   return map;
 }
 
-function getApprovedFairs(entities: LocalArkivEntity<unknown>[]) {
+function getApprovedFairs(entities: EntityRecord<unknown>[]) {
   const latestDecisionByFairKey = getLatestDecisionByFairKey(entities);
 
   return entities
@@ -100,8 +100,8 @@ function getApprovedFairs(entities: LocalArkivEntity<unknown>[]) {
     .sort((a, b) => b.createdAt - a.createdAt);
 }
 
-function getCancellationMap(entities: LocalArkivEntity<unknown>[]) {
-  const map = new Map<string, LocalArkivEntity<unknown>>();
+function getCancellationMap(entities: EntityRecord<unknown>[]) {
+  const map = new Map<string, EntityRecord<unknown>>();
 
   for (const entity of entities) {
     if (getEntityType(entity) !== "fair_registration_cancellation") continue;
@@ -119,7 +119,7 @@ function getCancellationMap(entities: LocalArkivEntity<unknown>[]) {
 
 function getActiveRegistrationCount(
   registrations: Array<{
-    entity: LocalArkivEntity<unknown>;
+    entity: EntityRecord<unknown>;
     payload: RegistrationPayload;
     isCancelled: boolean;
   }>,
@@ -139,7 +139,7 @@ export function GovernmentRegistrationsPanel({
   onCancelled,
 }: {
   token: string | null;
-  entities: LocalArkivEntity<unknown>[];
+  entities: EntityRecord<unknown>[];
   onCancelled: () => Promise<void> | void;
 }) {
   const [selectedFairKey, setSelectedFairKey] = useState("");
@@ -206,7 +206,7 @@ export function GovernmentRegistrationsPanel({
   );
 
   async function cancelRegistration(item: {
-    entity: LocalArkivEntity<unknown>;
+    entity: EntityRecord<unknown>;
     payload: RegistrationPayload;
   }) {
     if (!token) {
@@ -328,9 +328,9 @@ export function GovernmentRegistrationsPanel({
   }
 
   function renderRegistrationCard(item: {
-    entity: LocalArkivEntity<unknown>;
+    entity: EntityRecord<unknown>;
     payload: RegistrationPayload;
-    cancellation?: LocalArkivEntity<unknown>;
+    cancellation?: EntityRecord<unknown>;
     isCancelled: boolean;
   }) {
     const cancellationPayload = item.cancellation
@@ -412,7 +412,7 @@ export function GovernmentRegistrationsPanel({
 
         {item.isCancelled ? (
           <div className="decision-summary">
-            <span>Baja guardada en Arkiv</span>
+            <span>Baja registrada</span>
             <strong>{formatDate(cancellationPayload?.cancelledAt)}</strong>
             <p>{cancellationPayload?.notes ?? "-"}</p>
           </div>

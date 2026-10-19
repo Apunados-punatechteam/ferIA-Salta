@@ -136,9 +136,9 @@ export type GovernmentDecision = {
   decidedAt: number;
 };
 
-export type EntitySource = "local_demo" | "arkiv_real";
+export type EntitySource = "database";
 
-export type LocalArkivEntity<TPayload> = {
+export type EntityRecord<TPayload> = {
   entityKey: string;
   payload: TPayload;
   contentType: "application/json";
@@ -148,13 +148,12 @@ export type LocalArkivEntity<TPayload> = {
   }>;
   expiresIn: number;
   createdAt: number;
-  txHash?: string;
   source?: EntitySource;
 };
 
 export type FeriaState = {
-  profileEntity?: LocalArkivEntity<EntrepreneurProfile>;
-  applicationEntity?: LocalArkivEntity<FairApplication>;
-  certificateEntity?: LocalArkivEntity<FairCertificate>;
-  registrationEntity?: LocalArkivEntity<FairRegistration>;
+  profileEntity?: EntityRecord<EntrepreneurProfile>;
+  applicationEntity?: EntityRecord<FairApplication>;
+  certificateEntity?: EntityRecord<FairCertificate>;
+  registrationEntity?: EntityRecord<FairRegistration>;
 };

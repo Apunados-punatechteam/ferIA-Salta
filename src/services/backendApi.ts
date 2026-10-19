@@ -1,6 +1,6 @@
 ﻿import type {
   AuthUser,
-  LocalArkivEntity,
+  EntityRecord,
   UserRole,
 } from "../types/feria";
 
@@ -30,7 +30,6 @@ export type BackendFairCreateResponse = {
   fair: {
     ok: boolean;
     entityKey: string;
-    txHash?: string;
   };
 };
 
@@ -39,7 +38,6 @@ export type BackendFairDecisionResponse = {
   decision: {
     ok: boolean;
     entityKey: string;
-    txHash?: string;
   };
 };
 
@@ -212,7 +210,7 @@ function getCreatedAt(
   return Date.now();
 }
 
-function normalizeBackendArkivEntity(rawEntity: unknown): LocalArkivEntity<unknown> {
+function normalizeBackendEntity(rawEntity: unknown): EntityRecord<unknown> {
   const raw =
     rawEntity && typeof rawEntity === "object"
       ? (rawEntity as Record<string, unknown>)
@@ -222,29 +220,28 @@ function normalizeBackendArkivEntity(rawEntity: unknown): LocalArkivEntity<unkno
 
   return {
     entityKey: getEntityKey(raw),
-    txHash: typeof raw.txHash === "string" ? raw.txHash : undefined,
     payload: raw.payload ?? {},
     contentType: "application/json",
     attributes,
     expiresIn: typeof raw.expiresIn === "number" ? raw.expiresIn : 0,
     createdAt: getCreatedAt(raw, attributes),
-    source: "arkiv_real",
+    source: "database",
   };
 }
 
-export async function backendListArkivEntities(
+export async function backendListEntities(
   token: string
-): Promise<LocalArkivEntity<unknown>[]> {
+): Promise<EntityRecord<unknown>[]> {
   const data = await requestJson<{
     ok: boolean;
     entities: unknown[];
   }>({
-    path: "/arkiv/entities",
+    path: "/entities",
     token,
   });
 
   return data.entities
-    .map(normalizeBackendArkivEntity)
+    .map(normalizeBackendEntity)
     .sort((a, b) => b.createdAt - a.createdAt);
 }
 
@@ -259,10 +256,6 @@ export type BackendCreateFairPayload = {
   availableSlots: number;
   latitude: number;
   longitude: number;
-  registrationFeeXlm?: string;
-  paymentReceiverPublicKey?: string;
-  municipalityPublicationFeeXlm?: string;
-  municipalityReceiverPublicKey?: string;
 };
 
 export async function backendCreateFair(params: {
@@ -311,12 +304,10 @@ export type BackendFairRegistrationResponse = {
   registration: {
     ok: boolean;
     entityKey: string;
-    txHash?: string;
   };
   certificate: {
     ok: boolean;
     entityKey: string;
-    txHash?: string;
     certificateNumber: string;
   };
   remainingSlots: number;
@@ -359,7 +350,6 @@ export async function backendCancelFairRegistration(params: {
     cancellation: {
       ok: boolean;
       entityKey: string;
-      txHash?: string;
     };
   }>({
     path: "/fair-registrations/cancel",
@@ -429,88 +419,6 @@ export async function backendRegisterAccount(
 
   return data;
 }
-export type StellarPaymentStatus = "PENDING" | "CONFIRMED" | "REJECTED" | "EXPIRED";
-
-export type StellarPayment = {
-  id: string;
-  registrationKey?: string | null;
-  fairKey?: string | null;
-  userUsername?: string;
-  userDocument?: string;
-  amountXlm: string;
-  assetCode: string;
-  paymentConcept?: string;
-  payerRole?: string | null;
-  payeeRole?: string | null;
-  payeeDocument?: string | null;
-  payeeName?: string | null;
-  network: string;
-  receiverPublicKey: string;
-  sourcePublicKey?: string | null;
-  memo: string;
-  txHash?: string | null;
-  status: StellarPaymentStatus;
-  createdAt?: string;
-  confirmedAt?: string | null;
-};
-
-export async function backendCreateStellarPaymentIntent(params: {
-  token: string;
-  registrationKey?: string;
-  fairKey?: string;
-}): Promise<StellarPayment> {
-  const data = await requestJson<{
-    ok: boolean;
-    payment: StellarPayment;
-  }>({
-    path: "/stellar/payments/intents",
-    method: "POST",
-    token: params.token,
-    body: {
-      registrationKey: params.registrationKey,
-      fairKey: params.fairKey,
-    },
-  });
-
-  return data.payment;
-}
-
-export async function backendVerifyStellarPayment(params: {
-  token: string;
-  paymentIntentId: string;
-  txHash: string;
-}): Promise<StellarPayment> {
-  const data = await requestJson<{
-    ok: boolean;
-    payment: StellarPayment;
-  }>({
-    path: "/stellar/payments/verify",
-    method: "POST",
-    token: params.token,
-    body: {
-      paymentIntentId: params.paymentIntentId,
-      txHash: params.txHash,
-    },
-  });
-
-  return data.payment;
-}
-
-export async function backendListStellarPayments(params: {
-  token: string;
-}): Promise<StellarPayment[]> {
-  const data = await requestJson<{
-    ok: boolean;
-    payments: StellarPayment[];
-  }>({
-    path: "/stellar/payments",
-    method: "GET",
-    token: params.token,
-  });
-
-  return data.payments;
-}
-
 export type PublicFairEntrepreneur = {
   registrationKey: string;
   entrepreneurName: string;
@@ -565,40 +473,3 @@ export async function backendSendContact(payload: ContactPayload): Promise<void>
     body: payload,
   });
 }
-
-export type StellarRegistrationPaymentSummary = {
-  registrationKey: string;
-  paymentStatus: "CONFIRMED" | "PENDING" | "UNPAID";
-  confirmedPayment: StellarPayment | null;
-  pendingPayment: StellarPayment | null;
-  payments: StellarPayment[];
-};
-
-export async function backendGetStellarPaymentByRegistration(params: {
-  token: string;
-  registrationKey: string;
-}): Promise<StellarRegistrationPaymentSummary> {
-  const data = await requestJson<{
-    ok: boolean;
-    registrationKey: string;
-    paymentStatus: "CONFIRMED" | "PENDING" | "UNPAID";
-    confirmedPayment: StellarPayment | null;
-    pendingPayment: StellarPayment | null;
-    payments: StellarPayment[];
-  }>({
-    path: `/stellar/payments/registration/${encodeURIComponent(params.registrationKey)}`,
-    method: "GET",
-    token: params.token,
-  });
-
-  return {
-    registrationKey: data.registrationKey,
-    paymentStatus: data.paymentStatus,
-    confirmedPayment: data.confirmedPayment,
-    pendingPayment: data.pendingPayment,
-    payments: data.payments,
-  };
-}
-
-
-
