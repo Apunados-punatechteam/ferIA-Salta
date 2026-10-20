@@ -48,6 +48,7 @@ export function FairOrganizerPanel({
     longitude: number;
   } | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -79,6 +80,7 @@ export function FairOrganizerPanel({
 
     setIsSubmitting(true);
     setErrorMessage("");
+    setSuccessMessage("");
 
     try {
       const created = await backendCreateFair({
@@ -91,6 +93,11 @@ export function FairOrganizerPanel({
         latitude: form.latitude,
         longitude: form.longitude,
       });
+
+      setSuccessMessage(
+        `¡Feria "${form.name}" creada con éxito! Quedó enviada a aprobación del gobierno.`
+      );
+      setForm(initialForm);
 
       await onCreated();
     } catch (error) {
@@ -119,6 +126,7 @@ export function FairOrganizerPanel({
         </p>
 
         {errorMessage && <div className="error-banner">{errorMessage}</div>}
+        {successMessage && <div className="success-banner">{successMessage}</div>}
 
         <form className="form-grid" onSubmit={handleSubmit}>
           <label>

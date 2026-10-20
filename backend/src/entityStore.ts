@@ -268,3 +268,83 @@ export async function createFairRegistrationCancellation(params: {
     ],
   });
 }
+
+export async function getFairEvent(id: string) {
+  const row = await prisma.fairEntity.findUnique({ where: { id } });
+
+  if (!row || row.entityType !== ENTITY_TYPES.FAIR_EVENT) return null;
+
+  return toStoredEntity(row);
+}
+
+export async function updateFairEvent(
+  id: string,
+  data: {
+    name: string;
+    description: string;
+    address: string;
+    city: string;
+    category: string;
+    startDate: string;
+    endDate: string;
+    availableSlots: number;
+    latitude: number;
+    longitude: number;
+  }
+) {
+  const current = await getFairEvent(id);
+
+  if (!current) return null;
+
+  const attributes = current.attributes.map((item) =>
+    item.key === "category"
+      ? { ...item, value: data.category }
+      : item.key === "city"
+        ? { ...item, value: data.city }
+        : item
+  );
+
+  const updated = await prisma.fairEntity.update({
+    where: { id },
+    data: {
+      payload: { ...current.payload, ...data } as Prisma.InputJsonValue,
+      attributes: attributes as Prisma.InputJsonValue,
+    },
+  });
+
+  return toStoredEntity(updated);
+}
+
+// Borra la feria y todo lo que depende de ella (decisiones, inscripciones, cancelaciones y certificados).
+export async function deleteFairEvent(id: string) {
+  const rows = await prisma.fairEntity.findMany({
+    where: { entityType: { not: ENTITY_TYPES.FAIR_EVENT } },
+  });
+
+  const relatedIds = rows
+    .filter((row) => {
+      const payload = (row.payload ?? {}) as Record<string, unknown>;
+      return payload.fairKey === id;
+    })
+    .map((row) => row.id);
+
+  await prisma.fairEntity.deleteMany({
+    where: { id: { in: [id, ...relatedIds] } },
+  });
+
+  return { deletedRelated: relatedIds.length };
+}
+
+// Una feria está aprobada si su última decisión de gobierno es "approved".
+export async function isFairApproved(id: string) {
+  const rows = await prisma.fairEntity.findMany({
+    where: { entityType: ENTITY_TYPES.FAIR_EVENT_DECISION },
+  });
+
+  const decisions = rows
+    .map((row) => row.payload as Record<string, unknown>)
+    .filter((payload) => payload.fairKey === id)
+    .sort((a, b) => Number(b.decidedAt ?? 0) - Number(a.decidedAt ?? 0));
+
+  return decisions[0]?.decision === "approved";
+}

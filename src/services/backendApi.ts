@@ -72,14 +72,14 @@ export function clearAuthToken(): void {
 
 async function requestJson<TResponse>(params: {
   path: string;
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PUT" | "DELETE";
   token?: string | null;
   body?: unknown;
 }): Promise<TResponse> {
   const response = await fetch(`${API_BASE_URL}${params.path}`, {
     method: params.method ?? "GET",
     headers: {
-      "Content-Type": "application/json; charset=utf-8",
+      ...(params.body ? { "Content-Type": "application/json; charset=utf-8" } : {}),
       ...(params.token
         ? {
             Authorization: `Bearer ${params.token}`,
@@ -270,6 +270,30 @@ export async function backendCreateFair(params: {
   });
 
   return data.fair;
+}
+
+export async function backendUpdateFair(params: {
+  token: string;
+  fairKey: string;
+  fair: BackendCreateFairPayload;
+}): Promise<void> {
+  await requestJson<unknown>({
+    path: `/fairs/${encodeURIComponent(params.fairKey)}`,
+    method: "PUT",
+    token: params.token,
+    body: params.fair,
+  });
+}
+
+export async function backendDeleteFair(params: {
+  token: string;
+  fairKey: string;
+}): Promise<void> {
+  await requestJson<unknown>({
+    path: `/fairs/${encodeURIComponent(params.fairKey)}`,
+    method: "DELETE",
+    token: params.token,
+  });
 }
 
 export async function backendCreateFairDecision(params: {

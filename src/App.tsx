@@ -4,6 +4,7 @@ import { RegisterAccountPanel } from "./components/RegisterAccountPanel";
 import "./index.css";
 
 import { FairOrganizerPanel } from "./components/FairOrganizerPanel";
+import { MyFairsPanel } from "./components/MyFairsPanel";
 import { GovernmentApprovalPanel } from "./components/GovernmentApprovalPanel";
 import { GovernmentRegistrationsPanel } from "./components/GovernmentRegistrationsPanel";
 import { ProfileScopedDashboard } from "./components/ProfileScopedDashboard";
@@ -737,6 +738,13 @@ function renderStats() {
         <FairOrganizerPanel
           token={getAuthToken()}
           onCreated={handleSyncFromBackend}
+        />
+
+        <MyFairsPanel
+          token={getAuthToken()}
+          entities={entities}
+          userId={authUsuario?.id ?? ""}
+          onChanged={handleSyncFromBackend}
         />
 
         <section className="grid-layout bottom-grid">
