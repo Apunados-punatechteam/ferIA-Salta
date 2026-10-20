@@ -4893,3 +4893,6 @@ label { color: #64748b; }
 /* Tarjeta de sesión: textos oscuros sobre el tema claro */
 .project-card span { color: #64748b; }
 .project-card strong { color: #1a2b4e; }
+
+/* Logo FerIA: "IA" en naranja */
+.brand-ia { color: #e8612a; }
