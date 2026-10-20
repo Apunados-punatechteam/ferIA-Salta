@@ -4197,6 +4197,15 @@ label { color: #64748b; }
   .lv2-nav__links { display: none; }
 }
 
+/* Evita que el nav fijo (66px) tape el contenido al hacer scroll a una sección */
+#lv2-inicio,
+#lv2-ferias,
+#lv2-emprendedores,
+#lv2-sponsors,
+#lv2-contacto {
+  scroll-margin-top: 90px;
+}
+
 /* ── Hero ── */
 .lv2-hero {
   min-height: 100vh;
@@ -4880,3 +4889,7 @@ label { color: #64748b; }
 /* ============================================================
    FIN LANDING V2
    ============================================================ */
+
+/* Tarjeta de sesión: textos oscuros sobre el tema claro */
+.project-card span { color: #64748b; }
+.project-card strong { color: #1a2b4e; }
